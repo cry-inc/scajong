@@ -6,6 +6,8 @@ object Tile {
   val Depth = 1
 }
 
+class TilePair(val tile1:Tile, val tile2:Tile)
+
 class Tile(val x:Int, val y:Int, val z:Int, var tileType:TileType) {
   
   def isInside(xf:Float, yf:Float) : Boolean = {
