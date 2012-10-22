@@ -6,24 +6,9 @@ import javax.imageio.ImageIO
 
 import de.htwg.scajong.model._
 
-object SwingView {
-  def main(args: Array[String]) {
-    new SwingView()
-  }
-}
-
-class SwingView extends Frame {
-  /*
-  val panel = new FlowPanel()
-  val button = new Button("Click me")
-  val label = new Label()
-
-  panel.contents += button
-  panel.contents += label
-  */
-  
+class SwingView(field:Field) extends Frame {  
   title = "ScaJong"
-  contents = new FieldPanel(null) //panel
+  contents = new FieldPanel(field)
   visible = true
 }
 
@@ -34,7 +19,7 @@ object FieldPanel {
 
 class FieldPanel(val field:Field) extends Panel {
   
-  var images : Array[Image] = Array()
+  var images : Map[String, Image] = Map()
   
   preferredSize = new Dimension(Field.Width * FieldPanel.CellWidth, 
       Field.Height * FieldPanel.CellHeight)
@@ -42,25 +27,41 @@ class FieldPanel(val field:Field) extends Panel {
   //println(new File(".").getCanonicalPath())
   //var image = ImageIO.read(new File("test.png"))
   
-  //loadImages
+  loadImages
 
   def loadImages {
-    images = new Array(field.tileTypes.length)
-    var i = 0
-    for (tileType <- field.tileTypes) {
-      images(i) = ImageIO.read(new File(tileType.name + ".png"))
-      i += 1
-    }
+    for (tileType <- field.tileTypes)
+      images += tileType.name -> ImageIO.read(new File("tiles/" + tileType.name + ".png"))
+    val specials = Array("disabled", "selected", "empty", "tile", "hint")
+    for (name <- specials)
+    	images += name -> ImageIO.read(new File("tiles/" + name + ".png"))
+  }
+  
+  def drawTile(g:Graphics2D, tile:Tile) {
+    val x = tile.x * FieldPanel.CellWidth - 5
+    val y = tile.y * FieldPanel.CellHeight - 5 - 5 * tile.z
+    
+    g.drawImage(images("tile"), x, y, null)
+    g.drawImage(images(tile.tileType.name), x, y, null)
+    
+    /*
+	if (_showMoveable && !_field.CanMove(tile))
+	    g.DrawImage(_disImage, rect);
+	
+	if (_showHint && (tile == _hint1 || tile == _hint2))
+	    g.DrawImage(_hintImage, rect);
+	
+	if (tile == _selected)
+	    g.DrawImage(_selImage, rect);
+	*/
   }
   
   override def paintComponent(g: Graphics2D) : Unit = {
     g.setColor(new Color(255, 255, 255))
     g.fillRect(0, 0, preferredSize.width, preferredSize.height)
-    
-    g.setColor(new Color(0, 0, 0))
-    g.drawString("BLAH", 20, 20)
-    g.drawRect(200, 200, 200, 200)
-    
-    //g.drawImage(image, 0, 0, null)
+    //g.setColor(new Color(0, 0, 0))
+    val tiles = field.getSortedTiles
+    for (tile <- tiles)
+      drawTile(g, tile)
   }
 }

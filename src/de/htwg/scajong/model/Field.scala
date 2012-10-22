@@ -20,7 +20,7 @@ object Field {
 class Field(generator:IGenerator) {
   
   var tiles : Map[Int, Tile] = Map()
-  var tileTypes : List[TileType] = Nil
+  var tileTypes : Array[TileType] = Array()
   
   generator.generate(this)
 
@@ -36,12 +36,12 @@ class Field(generator:IGenerator) {
     if (tile1.z == tile2.z)
     {
       if (tile1.y == tile2.y)
-        tile1.x > tile2.x
+        tile1.x < tile2.x
       else
-        tile1.y > tile2.y
+        tile1.y < tile2.y
     }
     else
-      tile1.z > tile2.z
+      tile1.z < tile2.z
   }
   
   def +=(tile:Tile) {
@@ -57,12 +57,10 @@ class Field(generator:IGenerator) {
   }
   
   def getSortedTiles() : Array[Tile] = {
-    
     var list:List[Tile] = Nil
     for (tile <- tiles.iterator)
       list = tile._2 :: list
-    list.sort(sortCriteria)
-    list.toArray
+    list.sort(sortCriteria).toArray
   }
   
   def possibleTileIndices(x:Float, y:Float, z:Float) : Array[Int] = {
@@ -123,9 +121,6 @@ class Field(generator:IGenerator) {
     getHint != null
   }
   
-  // TODO: remove somehow?
-  private def countCriteria(a:(Int, Tile)) = true
-  
   def play(tile1:Tile, tile2:Tile) : PlayResult.Value = {
     if (tile1 == tile2)
       PlayResult.InvalidMove
@@ -136,7 +131,7 @@ class Field(generator:IGenerator) {
     else {
 	  -=(tile1)
 	  -=(tile2);
-	  if (tiles.count(countCriteria) == 0)
+	  if (tiles.size == 0)
 	    PlayResult.Won
 	  else {
 		if (!nextMovePossible)

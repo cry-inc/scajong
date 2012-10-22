@@ -3,9 +3,7 @@ package de.htwg.scajong.model
 import scala.io.Source
 
 object TileType {
-  
-  // D:/Dev/Scala/ScaJong/tiles.txt
-  def LoadTileTypes(filePath:String) : List[TileType] = {
+  def LoadTileTypes(filePath:String) : Array[TileType] = {
     var list : List[TileType] = Nil
     val source = io.Source.fromFile(filePath)
 	var id = 0
@@ -14,7 +12,7 @@ object TileType {
       id += 1
     }
     source.close()
-    list
+    list.toArray
   }  
 }
 
