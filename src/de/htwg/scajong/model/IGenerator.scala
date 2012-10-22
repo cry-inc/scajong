@@ -2,6 +2,10 @@ package de.htwg.scajong.model
 
 class IGenerator {
   def generate(field:Field) {
-    //TODO
+    //TODO: implement
+  }
+  
+  def scramble(fiedl:Field) {
+    //TODO: implement
   }
 }
