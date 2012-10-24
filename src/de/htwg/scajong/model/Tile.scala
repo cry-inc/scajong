@@ -27,4 +27,8 @@ class Tile(val x:Int, val y:Int, val z:Int, var tileType:TileType) {
     }
     array
   }
+  
+  override def toString = {
+    x + "," + y + "," + z + " Type: " + tileType
+  }
 }

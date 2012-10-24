@@ -150,8 +150,8 @@ class Field(generator:IGenerator) {
         moveableTiles = pair._2 :: moveableTiles
 
     for (i <- 0 until moveableTiles.length; j <- 0 until moveableTiles.length) {
-      if (i != j && tiles(i).tileType == tiles(j).tileType)
-        return new TilePair(tiles(i), tiles(j))
+      if (i != j && moveableTiles(i).tileType == moveableTiles(j).tileType)
+        return new TilePair(moveableTiles(i), moveableTiles(j))
     }
 
     null
