@@ -1,26 +1,32 @@
 package de.htwg.scajong.model
 
-import scala.util.Sorting$
-
-object PlayResult extends Enumeration {
-  type PlayResult = Value
-  val DifferentTypes = Value("DifferentTypes")
-  val CanNotMoveTile = Value("CanNotMoveTile")
-  val ValidMove = Value("ValidMove")
-  val InvalidMove = Value("InvalidMove")
-  val NoFurtherMoves = Value("NoFurtherMoves")
-  val Won = Value("Won")
-}
+import scala.util.Sorting
+import swing.Publisher
+import swing.event.Event
 
 object Field {
   val Width = 40
   val Height = 36
 }
 
-class Field(generator:IGenerator) {
+class TileAddedEvent(val tile:Tile) extends Event
+class TileRemovedEvent(val tile:Tile) extends Event
+class ScrambledEvent extends Event
+class SelectedChangedEvent(val tile:Tile) extends Event
+class WonEvent(val seconds:Int) extends Event
+class NoFurtherMovesEvent extends Event
+
+class Field(generator:IGenerator) extends Publisher {
   
   var tiles : Map[Int, Tile] = Map()
   var tileTypes : Array[TileType] = Array()
+  private var _selected:Tile = null
+  
+  def selected = _selected
+  def selected_=(newSelected:Tile) {
+    _selected = newSelected;
+    publish(new SelectedChangedEvent(_selected))
+  }
   
   generator.generate(this)
 
@@ -32,35 +38,29 @@ class Field(generator:IGenerator) {
 	z * Field.Width * Field.Height + y * Field.Width + x
   }
   
-  private def sortCriteria(tile1:Tile, tile2:Tile) : Boolean = {
-    if (tile1.z == tile2.z)
-    {
-      if (tile1.y == tile2.y)
-        tile1.x < tile2.x
-      else
-        tile1.y < tile2.y
-    }
-    else
-      tile1.z < tile2.z
-  }
-  
   def +=(tile:Tile) {
     tiles += (calcTileIndex(tile) -> tile)
+    publish(new TileAddedEvent(tile))
   }
   
   def -=(tile:Tile) {
     tiles -= calcTileIndex(tile)
+    publish(new TileRemovedEvent(tile))
   }
   
   def scramble {
     generator.scramble(this)
+    publish(new ScrambledEvent)
   }
+
+  implicit val tileOrdering = Ordering.by((t: Tile) => (t.z, t.y, t.x))
   
   def getSortedTiles() : Array[Tile] = {
     var list:List[Tile] = Nil
     for (tile <- tiles.iterator)
       list = tile._2 :: list
-    list.sort(sortCriteria).toArray
+    list = list.sorted
+    list.toArray
   }
   
   def possibleTileIndices(x:Float, y:Float, z:Float) : Array[Int] = {
@@ -121,39 +121,34 @@ class Field(generator:IGenerator) {
     getHint != null
   }
   
-  def play(tile1:Tile, tile2:Tile) : PlayResult.Value = {
+  def play(tile1:Tile, tile2:Tile) : Boolean = {
     if (tile1 == tile2)
-      PlayResult.InvalidMove
+      false
     else if (tile1.tileType != tile2.tileType)
-      PlayResult.DifferentTypes
+      false
     else if (!canMove(tile1) || !canMove(tile2))
-      PlayResult.CanNotMoveTile
+      false
     else {
 	  -=(tile1)
 	  -=(tile2);
 	  if (tiles.size == 0)
-	    PlayResult.Won
-	  else {
-		if (!nextMovePossible)
-		  PlayResult.NoFurtherMoves
-		else
-		  PlayResult.ValidMove
-	  }
+	    //TODO: add game time
+	   	publish(new WonEvent(123))
+	  else if (!nextMovePossible)
+		publish(new NoFurtherMovesEvent)
+	  true
     }
   }
   
   def getHint : TilePair = {
     var moveableTiles : List[Tile] = Nil
-    
-    for (pair <- tiles)
-      if (canMove(pair._2))
-        moveableTiles = pair._2 :: moveableTiles
-
+    for ((_, tile) <- tiles)
+      if (canMove(tile))
+        moveableTiles = tile :: moveableTiles
     for (i <- 0 until moveableTiles.length; j <- 0 until moveableTiles.length) {
       if (i != j && moveableTiles(i).tileType == moveableTiles(j).tileType)
         return new TilePair(moveableTiles(i), moveableTiles(j))
     }
-
     null
   }
 }

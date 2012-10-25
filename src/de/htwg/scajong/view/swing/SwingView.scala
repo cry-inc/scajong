@@ -1,15 +1,18 @@
 package de.htwg.scajong.view.swing
 
 import swing._
+import swing.event.Event
 import java.io.File
 import javax.imageio.ImageIO
 import javax.swing.JFrame._
 import de.htwg.scajong.model._
 import scala.swing.event.MouseClicked
 
-class SwingView(field:Field) extends Frame {  
+class TileClickedEvent(val tile:Tile) extends Event
+
+class SwingView(field:Field, name:String) extends Frame {  
   title = "ScaJong"
-  var fieldPanel = new FieldPanel(field)
+  var fieldPanel = new FieldPanel(field, name)
   peer.setDefaultCloseOperation(EXIT_ON_CLOSE)
   contents = fieldPanel
   visible = true
@@ -22,17 +25,21 @@ object FieldPanel {
   val TileImageHeight= 95
 }
 
-class FieldPanel(val field:Field) extends Panel {
+class FieldPanel(val field:Field, name:String) extends Panel {
   
   var images : Map[String, Image] = Map()
-  var selected : Tile = null
   
   preferredSize = new Dimension(Field.Width * FieldPanel.CellWidth, 
       Field.Height * FieldPanel.CellHeight)
   loadImages
   listenTo(mouse.clicks)
+
   reactions += {
     case e: MouseClicked => mouseClickHandler(e)
+    // TODO: update inactive view/window
+    // TODO: remove field var from view, add to events
+    // TODO: add view to view events
+    case e: Event => {println("repaint " + name); repaint; }
   }
 
   def loadImages {
@@ -58,31 +65,18 @@ class FieldPanel(val field:Field) extends Panel {
 	    g.DrawImage(_hintImage, rect);
 	*/
     
-	if (tile == selected)
+	if (tile == field.selected)
 	  g.drawImage(images("selected"), x, y, null)
   }
   
-  def tileClicked(tile:Tile) {
-    if (field.canMove(tile)) {
-      if (selected != null && selected.tileType == tile.tileType) {
-        field.play(selected, tile)
-        selected = null
-      } else {
-        selected = tile
-      }
-      repaint
-    }
-  }
-  
   def mouseClickHandler(e:event.MouseClicked) : Boolean = {
-    println("clicked at " + e.point)
     val tiles = field.getSortedTiles.reverse
     for (tile <- tiles) {
       val x = tile.x * FieldPanel.CellWidth - 5
       val y = tile.y * FieldPanel.CellHeight - 5 - 5 * tile.z
       val rect = new Rectangle(x,y, FieldPanel.TileImageWidth, FieldPanel.TileImageHeight)
       if (rect.contains(e.point)) {
-        tileClicked(tile)
+        publish(new TileClickedEvent(tile))
         return true
       }
     }
@@ -92,7 +86,6 @@ class FieldPanel(val field:Field) extends Panel {
   override def paintComponent(g: Graphics2D) : Unit = {
     g.setColor(new Color(255, 255, 255))
     g.fillRect(0, 0, preferredSize.width, preferredSize.height)
-    //g.setColor(new Color(0, 0, 0))
     val tiles = field.getSortedTiles
     for (tile <- tiles)
       drawTile(g, tile)
