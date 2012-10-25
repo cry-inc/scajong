@@ -9,12 +9,14 @@ object Field {
   val Height = 36
 }
 
-class TileAddedEvent(val tile:Tile) extends Event
-class TileRemovedEvent(val tile:Tile) extends Event
-class ScrambledEvent extends Event
-class SelectedChangedEvent(val tile:Tile) extends Event
 class WonEvent(val seconds:Int) extends Event
 class NoFurtherMovesEvent extends Event
+class FieldChangedEvent extends Event
+
+class TileAddedEvent(val tile:Tile) extends FieldChangedEvent
+class TileRemovedEvent(val tile:Tile) extends FieldChangedEvent
+class ScrambledEvent extends FieldChangedEvent
+class SelectedChangedEvent(val tile:Tile) extends FieldChangedEvent
 
 class Field(generator:IGenerator) extends Publisher {
   

@@ -6,16 +6,24 @@ import java.io.File
 import javax.imageio.ImageIO
 import javax.swing.JFrame._
 import de.htwg.scajong.model._
-import scala.swing.event.MouseClicked
+import scala.swing.event._
+import javax.swing.JFrame
+import scala.swing.event.MouseReleased$
 
 class TileClickedEvent(val tile:Tile) extends Event
 
-class SwingView(field:Field, name:String) extends Frame {  
+class SwingView(field:Field, name:String = "") extends Frame {  
   title = "ScaJong"
+  if (name.length > 0)
+    title += " " + name;
   var fieldPanel = new FieldPanel(field, name)
-  peer.setDefaultCloseOperation(EXIT_ON_CLOSE)
   contents = fieldPanel
   visible = true
+  // TODO: Exit after closed ALL views
+  //peer.setDefaultCloseOperation(EXIT_ON_CLOSE)
+  //reactions += {
+  //  case e: WindowClosing => None
+  //}
 }
 
 object FieldPanel {
@@ -33,13 +41,11 @@ class FieldPanel(val field:Field, name:String) extends Panel {
       Field.Height * FieldPanel.CellHeight)
   loadImages
   listenTo(mouse.clicks)
+  listenTo(field)
 
   reactions += {
-    case e: MouseClicked => mouseClickHandler(e)
-    // TODO: update inactive view/window
-    // TODO: remove field var from view, add to events
-    // TODO: add view to view events
-    case e: Event => {println("repaint " + name); repaint; }
+    case e: MouseReleased => mouseReleasedHandler(e)
+    case e: FieldChangedEvent => repaint
   }
 
   def loadImages {
@@ -58,29 +64,28 @@ class FieldPanel(val field:Field, name:String) extends Panel {
     g.drawImage(images(tile.tileType.name), x, y, null)
     
     /*
-	if (_showMoveable && !_field.CanMove(tile))
-	    g.DrawImage(_disImage, rect);
-	
-	if (_showHint && (tile == _hint1 || tile == _hint2))
-	    g.DrawImage(_hintImage, rect);
-	*/
-    
-	if (tile == field.selected)
-	  g.drawImage(images("selected"), x, y, null)
+  	if (_showMoveable && !_field.CanMove(tile))
+  	    g.DrawImage(_disImage, rect);
+  	
+  	if (_showHint && (tile == _hint1 || tile == _hint2))
+  	    g.DrawImage(_hintImage, rect);
+  	*/
+  
+  	if (tile == field.selected)
+  	  g.drawImage(images("selected"), x, y, null)
   }
   
-  def mouseClickHandler(e:event.MouseClicked) : Boolean = {
+  def mouseReleasedHandler(e:event.MouseReleased) {
+    // TODO: skip all but the left mouse button
     val tiles = field.getSortedTiles.reverse
-    for (tile <- tiles) {
+    for (tile <- tiles) yield {
       val x = tile.x * FieldPanel.CellWidth - 5
       val y = tile.y * FieldPanel.CellHeight - 5 - 5 * tile.z
-      val rect = new Rectangle(x,y, FieldPanel.TileImageWidth, FieldPanel.TileImageHeight)
+      val rect = new Rectangle(x, y, FieldPanel.TileImageWidth, FieldPanel.TileImageHeight)
       if (rect.contains(e.point)) {
         publish(new TileClickedEvent(tile))
-        return true
       }
     }
-    return false
   }
   
   override def paintComponent(g: Graphics2D) : Unit = {

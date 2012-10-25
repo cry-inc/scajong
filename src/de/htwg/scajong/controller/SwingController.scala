@@ -15,13 +15,11 @@ class SwingController(val field:Field) extends Reactor {
   
   def attachView(view:SwingView) {
     views = view :: views
-    view.listenTo(field)
     listenTo(view.fieldPanel)
   }
   
   def detachView(view:SwingView) {
     views = views.filter(v => v != view)
-    view.deafTo(field)
     deafTo(view.fieldPanel)
   }
   
