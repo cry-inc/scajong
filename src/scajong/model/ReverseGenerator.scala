@@ -18,8 +18,7 @@ class ReverseGenerator(val setupFile:String, val tileFile:String) extends IGener
       }
       
       // Add remaining tile to the field
-      for (tile <- removables)
-        field += tile
+      removables.foreach(field += _)
     }    
     
     // Read the list from behind and and get random a random tile type for each pair to build the game

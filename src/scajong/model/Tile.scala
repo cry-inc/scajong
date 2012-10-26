@@ -6,6 +6,8 @@ object Tile {
   val Depth = 1
 }
 
+class Point(val x:Int, val y:Int)
+
 class TilePair(val tile1:Tile, val tile2:Tile)
 
 class Tile(val x:Int, val y:Int, val z:Int, var tileType:TileType) {
@@ -29,6 +31,6 @@ class Tile(val x:Int, val y:Int, val z:Int, var tileType:TileType) {
   }
   
   override def toString = {
-    x + "," + y + "," + z + " Type: " + tileType
+    "Tile[" + x + "," + y + "," + z + "," + tileType + "]"
   }
 }

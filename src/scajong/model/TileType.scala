@@ -16,6 +16,6 @@ object TileType {
 
 class TileType(val id:Int, val name:String) {
   override def toString = {
-    "{" + id.toString + ": \"" + name + "\"}"
+    "TileType[" + id.toString + ",\"" + name + "\"]"
   }
 }

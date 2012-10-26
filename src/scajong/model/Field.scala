@@ -35,8 +35,8 @@ class Field(generator:IGenerator) extends Publisher {
     calcTileIndex(tile.x, tile.y, tile.z)
   }
  
-  private def calcTileIndex(x:Int, y:Int, z:Int):Int = {
-	z * Field.Width * Field.Height + y * Field.Width + x
+  private def calcTileIndex(x:Int, y:Int, z:Int) : Int = {
+    z * Field.Width * Field.Height + y * Field.Width + x
   }
   
   def +=(tile:Tile) {
@@ -54,10 +54,9 @@ class Field(generator:IGenerator) extends Publisher {
     publish(new ScrambledEvent)
   }
 
-  implicit val tileOrdering = Ordering.by((t: Tile) => (t.z, t.y, t.x))
-  
   def getSortedTiles() : Array[Tile] = {
     val list = tiles.map(_._2).toList
+    implicit val tileOrdering = Ordering.by((t: Tile) => (t.z, t.y, t.x))
     list.sorted.toArray
   }
   
@@ -77,9 +76,8 @@ class Field(generator:IGenerator) extends Publisher {
   }
   
   private def canMove(tile:Tile, xd:Int, yd:Int, zd:Int) : Boolean = {
-  	val points = tile.testPoints
   	val z = tile.z + zd
-  	points.forall(point => {
+  	tile.testPoints.forall(point => {
   	  val x = point.x + xd
       val y = point.y + yd
       val found = findTile(x, y, z)
@@ -87,17 +85,9 @@ class Field(generator:IGenerator) extends Publisher {
   	}) 
   }
 
-  private def canMoveUp(tile:Tile) : Boolean = {
-    canMove(tile, 0, 0, 1)
-  }
-  
-  private def canMoveRight(tile:Tile) : Boolean = {
-    canMove(tile, 1, 0, 0)
-  }
-    
-  private def canMoveLeft(tile:Tile) : Boolean = {
-    canMove(tile, -1, 0, 0)
-  }
+  private def canMoveUp(tile:Tile) = canMove(tile, 0, 0, 1)
+  private def canMoveRight(tile:Tile) = canMove(tile, 1, 0, 0)
+  private def canMoveLeft(tile:Tile) = canMove(tile, -1, 0, 0)
 
   def canMove(tile:Tile) : Boolean = {
     val up = canMoveUp(tile)
@@ -105,11 +95,7 @@ class Field(generator:IGenerator) extends Publisher {
     val ur = up && canMoveRight(tile)
     ul || ur
   }
-  
-  def nextMovePossible : Boolean = {
-    getHint != null
-  }
-  
+
   def play(tile1:Tile, tile2:Tile) : Boolean = {
     if (tile1 == tile2)
       false
@@ -130,6 +116,7 @@ class Field(generator:IGenerator) extends Publisher {
   }
   
   def getHint : TilePair = {
+    // TODO: rewrite without return
     var moveableTiles = tiles.map(_._2).filter(canMove(_))
     for (i <- moveableTiles; j <- moveableTiles) {
       if (i != j && j.tileType == i.tileType)
@@ -137,4 +124,6 @@ class Field(generator:IGenerator) extends Publisher {
     }
     null
   }
+  
+  def nextMovePossible : Boolean = getHint != null
 }
