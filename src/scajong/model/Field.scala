@@ -18,21 +18,21 @@ class ScrambledEvent extends FieldChangedEvent
 class SelectedChangedEvent(val tile:Tile) extends FieldChangedEvent
 
 class Field(generator:IGenerator) extends Publisher {
-  
   var tiles : Map[Int, Tile] = Map()
   var tileTypes : Array[TileType] = Array()
   private var _selected:Tile = null
+
+  generator.generate(this)
   
   def selected = _selected
+  
   def selected_=(newSelected:Tile) {
     _selected = newSelected;
     publish(new SelectedChangedEvent(_selected))
   }
-  
-  generator.generate(this)
 
   private def calcTileIndex(tile:Tile):Int = {
-	calcTileIndex(tile.x, tile.y, tile.z)
+    calcTileIndex(tile.x, tile.y, tile.z)
   }
  
   private def calcTileIndex(x:Int, y:Int, z:Int):Int = {
@@ -57,46 +57,34 @@ class Field(generator:IGenerator) extends Publisher {
   implicit val tileOrdering = Ordering.by((t: Tile) => (t.z, t.y, t.x))
   
   def getSortedTiles() : Array[Tile] = {
-    var list:List[Tile] = Nil
-    for (tile <- tiles.iterator)
-      list = tile._2 :: list
-    list = list.sorted
-    list.toArray
+    val list = tiles.map(_._2).toList
+    list.sorted.toArray
   }
   
-  def possibleTileIndices(x:Float, y:Float, z:Float) : Array[Int] = {
+  def possibleTileIndices(x:Float, y:Float, z:Float) : IndexedSeq[Int] = {
     val ix = math.floor(x).toInt
     val iy = math.floor(y).toInt
     val iz = math.floor(z).toInt
-    var indicies = new Array[Int](Tile.Width * Tile.Height)
-    var c = 0
-    for (i <- 0 until Tile.Width; j <- 0 until Tile.Height) {
-      indicies(c) = calcTileIndex(ix - i, iy - j, iz)
-      c += 1
+    for (i <- 0 until Tile.Width; j <- 0 until Tile.Height) yield {
+      calcTileIndex(ix - i, iy - j, iz)
     }
-    indicies
 }
 
   def findTile(x:Float, y:Float, z:Float) : Tile = {
-    var tile:Tile = null
     val indices = possibleTileIndices(x, y, z)
-    for (i <- indices)
-      if (tiles.contains(i) && tiles(i).isInside(x, y, z))
-        tile = tiles(i)
-    return tile;
+    val foundTiles = tiles.filter(p => indices.contains(p._1) && p._2.isInside(x, y, z))
+    if (foundTiles.nonEmpty) foundTiles.last._2 else null
   }
   
   private def canMove(tile:Tile, xd:Int, yd:Int, zd:Int) : Boolean = {
-	var points = tile.testPoints
-	val z = tile.z + zd
-	for (i <- 0 until points.length) {
-	  val x = points(i).x + xd
-	  val y = points(i).y + yd
-	  val found = findTile(x, y, z)
-	  if (found != null && tile != found)
-	    return false
-	}
-	true    
+  	val points = tile.testPoints
+  	val z = tile.z + zd
+  	points.forall(point => {
+  	  val x = point.x + xd
+      val y = point.y + yd
+      val found = findTile(x, y, z)
+      (found == null || tile == found)
+  	}) 
   }
 
   private def canMoveUp(tile:Tile) : Boolean = {
@@ -130,25 +118,22 @@ class Field(generator:IGenerator) extends Publisher {
     else if (!canMove(tile1) || !canMove(tile2))
       false
     else {
-	  -=(tile1)
-	  -=(tile2);
+  	  -=(tile1)
+  	  -=(tile2);
 	  if (tiles.size == 0)
 	    //TODO: add game time
 	   	publish(new WonEvent(123))
 	  else if (!nextMovePossible)
-		publish(new NoFurtherMovesEvent)
-	  true
+		  publish(new NoFurtherMovesEvent)
+	    true
     }
   }
   
   def getHint : TilePair = {
-    var moveableTiles : List[Tile] = Nil
-    for ((_, tile) <- tiles)
-      if (canMove(tile))
-        moveableTiles = tile :: moveableTiles
-    for (i <- 0 until moveableTiles.length; j <- 0 until moveableTiles.length) {
-      if (i != j && moveableTiles(i).tileType == moveableTiles(j).tileType)
-        return new TilePair(moveableTiles(i), moveableTiles(j))
+    var moveableTiles = tiles.map(_._2).filter(canMove(_))
+    for (i <- moveableTiles; j <- moveableTiles) {
+      if (i != j && j.tileType == i.tileType)
+        return new TilePair(i, j)
     }
     null
   }

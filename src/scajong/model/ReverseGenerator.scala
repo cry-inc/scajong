@@ -59,12 +59,8 @@ class ReverseGenerator(val setupFile:String, val tileFile:String) extends IGener
   }
   
   def extractRemovableTiles(field:Field) : List[Tile] = {
-    var removables : List[Tile] = Nil
-    for ((_,tile) <- field.tiles)
-      if (field.canMove(tile))
-        removables = tile :: removables
-    for (tile <- removables)
-      field -= tile
-    removables
+    val removables = field.tiles.filter(p => field.canMove(p._2))
+    removables.foreach(field.tiles -= _._1)
+    removables.map(_._2).toList
   }
 }
