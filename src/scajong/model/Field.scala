@@ -1,6 +1,5 @@
-package de.htwg.scajong.model
+package scajong.model
 
-import scala.util.Sorting
 import swing.Publisher
 import swing.event.Event
 

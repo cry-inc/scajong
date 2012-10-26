@@ -1,9 +1,8 @@
-package de.htwg.scajong.controller;
+package scajong.controller
 
+import scajong.model._
+import scajong.view._
 import swing._
-import swing.event.Event;
-import de.htwg.scajong.model._
-import de.htwg.scajong.view.swing._
 
 class SwingController(val field:Field) extends Reactor {
   

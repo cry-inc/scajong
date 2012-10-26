@@ -1,6 +1,4 @@
-package de.htwg.scajong.model
-
-import scala.io.Source
+package scajong.model
 
 object TileType {
   def LoadTileTypes(filePath:String) : Array[TileType] = {

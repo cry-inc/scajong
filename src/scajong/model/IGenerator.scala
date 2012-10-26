@@ -1,4 +1,4 @@
-package de.htwg.scajong.model
+package scajong.model
 
 abstract class IGenerator {
   def generate(field:Field)

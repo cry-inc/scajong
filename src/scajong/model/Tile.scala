@@ -1,4 +1,4 @@
-package de.htwg.scajong.model
+package scajong.model
 
 object Tile {
   val Width = 2

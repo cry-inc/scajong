@@ -1,8 +1,6 @@
-package de.htwg.scajong.model
+package scajong.model
 
 import scala.util.Random
-import scala.io.Source
-import scala.io
 
 class ReverseGenerator(val setupFile:String, val tileFile:String) extends IGenerator {
   

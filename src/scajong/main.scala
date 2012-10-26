@@ -1,8 +1,8 @@
-package de.htwg.scajong
+package scajong
 
-import de.htwg.scajong.model._
-import de.htwg.scajong.view.swing._
-import de.htwg.scajong.controller.SwingController
+import scajong.model._
+import scajong.view._
+import scajong.controller._
 
 object ScaJong {
 	def main(args: Array[String]) {

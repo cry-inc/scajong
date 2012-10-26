@@ -1,14 +1,11 @@
-package de.htwg.scajong.view.swing
+package scajong.view
 
+import scajong.model._
 import swing._
-import swing.event.Event
+import swing.event._
 import java.io.File
-import javax.imageio.ImageIO
 import javax.swing.JFrame._
-import de.htwg.scajong.model._
-import scala.swing.event._
-import javax.swing.JFrame
-import scala.swing.event.MouseReleased$
+import javax.imageio.ImageIO
 
 class TileClickedEvent(val tile:Tile) extends Event
 
