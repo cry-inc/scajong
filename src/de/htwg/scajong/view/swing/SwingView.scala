@@ -36,7 +36,11 @@ object FieldPanel {
 class FieldPanel(val field:Field, name:String) extends Panel {
   
   var images : Map[String, Image] = Map()
-  
+  /*
+  var hint1:Tile = null
+  var hint2:Tile = null
+  var showMoveable:Boolean = true
+  */
   preferredSize = new Dimension(Field.Width * FieldPanel.CellWidth, 
       Field.Height * FieldPanel.CellHeight)
   loadImages
@@ -64,21 +68,21 @@ class FieldPanel(val field:Field, name:String) extends Panel {
     g.drawImage(images(tile.tileType.name), x, y, null)
     
     /*
-  	if (_showMoveable && !_field.CanMove(tile))
-  	    g.DrawImage(_disImage, rect);
+  	if (showMoveable && !field.canMove(tile))
+	    g.drawImage(images("disabled"), x, y, null)
   	
-  	if (_showHint && (tile == _hint1 || tile == _hint2))
-  	    g.DrawImage(_hintImage, rect);
-  	*/
-  
+  	if (tile == hint1 || tile == hint2)
+  	    g.drawImage(images("hint"), x, y, null)
+    */
   	if (tile == field.selected)
   	  g.drawImage(images("selected"), x, y, null)
   }
   
   def mouseReleasedHandler(e:event.MouseReleased) {
     // TODO: skip all but the left mouse button
+    // TODO: fix select below bug
     val tiles = field.getSortedTiles.reverse
-    for (tile <- tiles) yield {
+    for (tile <- tiles) {
       val x = tile.x * FieldPanel.CellWidth - 5
       val y = tile.y * FieldPanel.CellHeight - 5 - 5 * tile.z
       val rect = new Rectangle(x, y, FieldPanel.TileImageWidth, FieldPanel.TileImageHeight)
