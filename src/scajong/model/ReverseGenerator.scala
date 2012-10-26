@@ -23,9 +23,10 @@ class ReverseGenerator(val setupFile:String, val tileFile:String) extends IGener
     }    
     
     // Read the list from behind and and get random a random tile type for each pair to build the game
-    val random = new Random
+    var rand = new Random().nextInt(field.tileTypes.length)
     for (pair <- reversed) {
-      val typeIndex = random.nextInt(field.tileTypes.length)
+      val typeIndex = rand % field.tileTypes.length
+      rand += 1
       pair.tile1.tileType = field.tileTypes(typeIndex)
       pair.tile2.tileType = field.tileTypes(typeIndex)
       field += pair.tile1;
