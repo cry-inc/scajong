@@ -31,11 +31,11 @@ class Field(generator:IGenerator) extends Publisher {
     publish(new SelectedChangedEvent(_selected))
   }
 
-  private def calcTileIndex(tile:Tile):Int = {
+  def calcTileIndex(tile:Tile):Int = {
     calcTileIndex(tile.x, tile.y, tile.z)
   }
  
-  private def calcTileIndex(x:Int, y:Int, z:Int) : Int = {
+  def calcTileIndex(x:Int, y:Int, z:Int) : Int = {
     z * Field.Width * Field.Height + y * Field.Width + x
   }
   
@@ -73,6 +73,11 @@ class Field(generator:IGenerator) extends Publisher {
     val indices = possibleTileIndices(x, y, z)
     val foundTiles = tiles.filter(p => indices.contains(p._1) && p._2.isInside(x, y, z))
     if (foundTiles.nonEmpty) foundTiles.last._2 else null
+  }
+  
+  def topmostTile(x:Int, y:Int) : Tile = {
+    val stack = tiles.filter(p => p._2.isInside(x, y)).map(_._2).toList
+    if (stack.nonEmpty) stack.sortWith((a,b) => a.z < b.z).last else null
   }
   
   private def canMove(tile:Tile, xd:Int, yd:Int, zd:Int) : Boolean = {
