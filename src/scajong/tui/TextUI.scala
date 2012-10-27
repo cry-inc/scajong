@@ -1,6 +1,7 @@
 package scajong.tui
 
 import scajong.model._
+import util.matching.Regex
 
 object TextUI {
   def main(args: Array[String]) {
@@ -14,40 +15,33 @@ class TextUI(val field:Field) {
   printField
   run
   
+  def playTiles(a:Int, b:Int) {
+		if (!field.tiles.contains(a))
+			println("Could not find tile with id " + a + "!")
+		else if (!field.tiles.contains(b))
+		  println("Could not find tile with id " + b + "!")
+		else {
+		  if (field.play(field.tiles(a), field.tiles(b))) {
+		    println("Removed the two tiles!")
+		    printField
+		} else
+		  println("Could not remove the two tiles!")
+		}
+  }
+  
   def run {
-    var run = true
-    while (run) {
+    while (true) {
       val command = readLine
       command match {
         case "h" => printHelp
         case "p" => printField
-        case "q" => run = false
+        case "q" => return
         case "s" => field.scramble; printField
         case s:String => {
-          val splitted = s.split(" ")
-          if (splitted.length != 2)
-            println("Unknown command: " + s)
-          else {
-            try {
-			        // TODO: Replace by Regex
-              val id1 = splitted(0).toInt
-			        val id2 = splitted(1).toInt
-			        if (!field.tiles.contains(id1))
-	              println("Could not find tile with id " + id1 + "!")
-	            else if (!field.tiles.contains(id2))
-	              println("Could not find tile with id " + id2 + "!")
-	            else {
-	              val tile1 = field.tiles(id1)
-	              val tile2 = field.tiles(id2)
-	              if (field.play(tile1, tile2)) {
-	                println("Removed the two tiles.")
-	                printField
-	              } else
-	                println("Could not remove the two tiles.")
-	            }
-            } catch {
-               case _ => println("Inavlid tile Id!")
-            }
+          val regex = new Regex("^(\\d+) (\\d+)$", "a", "b")
+          regex.findFirstIn(s) match {
+				   	case Some(regex(a, b)) => playTiles(a.toInt, b.toInt)
+				   	case None => println("Unknown command: " + s)
           }
         }
       }
