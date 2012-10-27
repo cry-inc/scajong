@@ -2,14 +2,14 @@ package scajong.tui
 
 import scajong.model._
 
-object ScajongTextUI {
+object TextUI {
   def main(args: Array[String]) {
     val field = new Field(new ReverseGenerator("setup.txt", "tiles.txt"))
-    new ScajongTextUI(field)
+    new TextUI(field)
   }
 }
 
-class ScajongTextUI(val field:Field) {
+class TextUI(val field:Field) {
   
   printField
   run
