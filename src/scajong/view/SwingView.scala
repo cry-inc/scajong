@@ -13,17 +13,20 @@ class HintEvent extends Event
 class MovablesEvent extends Event
 
 class SwingView(field:Field, name:String = "") extends Frame {  
-  title = "ScaJong"
-  if (name.length > 0)
-    title += " " + name;
+  
   var fieldPanel = new FieldPanel(field, name)
+  
+  title = "ScaJong"
+  if (name.length > 0) title += " " + name
   contents = fieldPanel
   visible = true
-  // TODO: Exit after closed ALL views
-  //peer.setDefaultCloseOperation(EXIT_ON_CLOSE)
-  //reactions += {
-  //  case e: WindowClosing => None
-  //}
+
+  reactions += {
+    case e: WindowClosing => {
+      val frames = java.awt.Frame.getFrames()
+      if (frames.count(!_.isVisible) == 1) System.exit(0)
+    }
+  }
 }
 
 object FieldPanel {
