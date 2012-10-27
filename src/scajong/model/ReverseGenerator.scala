@@ -5,16 +5,21 @@ import scala.util.Random
 class ReverseGenerator(val setupFile:String, val tileFile:String) extends IGenerator {
   
   def scramble(field:Field) {
-    var reversed : List[TilePair] = Nil
+    var reversed = List[TilePair]()
+    val random = new Random()
     while (field.tiles.size > 0) {
       
       // Find two or more random outer tiles, remove them and store the coordinates
       var removables = extractRemovableTiles(field)
       
-      // Continue until no more removable tile pairs are left in the list
+      // Continue until no more random removable tile pairs are left in the list
       while (removables.length > 1) {
-        reversed = new TilePair(removables(0), removables(1)) :: reversed
-        removables = removables.drop(2)
+        val index1 = random.nextInt(removables.length)
+        var index2 = random.nextInt(removables.length)
+        while (index1 == index2) index2 = (index2 + 1) % removables.length
+        val pair = new TilePair(removables(index1), removables(index2))
+        reversed = pair :: reversed
+        removables = removables.filter(t => t != pair.tile1 && t != pair.tile2)
       }
       
       // Add remaining tile to the field
@@ -22,10 +27,10 @@ class ReverseGenerator(val setupFile:String, val tileFile:String) extends IGener
     }    
     
     // Read the list from behind and and get random a random tile type for each pair to build the game
-    var rand = new Random().nextInt(field.tileTypes.length)
+    var typeRand = new Random().nextInt(field.tileTypes.length)
     for (pair <- reversed) {
-      val typeIndex = rand % field.tileTypes.length
-      rand += 1
+      val typeIndex = typeRand % field.tileTypes.length
+      typeRand += 1
       pair.tile1.tileType = field.tileTypes(typeIndex)
       pair.tile2.tileType = field.tileTypes(typeIndex)
       field += pair.tile1;
