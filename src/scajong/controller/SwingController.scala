@@ -10,6 +10,7 @@ class SwingController(val field:Field) extends Reactor {
   
   reactions += {
     case e: TileClickedEvent => tileClicked(e.tile)
+    case _ => println("other event")
   }
   
   def attachView(view:SwingView) {
@@ -23,6 +24,7 @@ class SwingController(val field:Field) extends Reactor {
   }
   
   def tileClicked(tile:Tile) {
+    println("tileClicked: " + tile)
     if (field.canMove(tile)) {
       if (field.selected != null && field.selected.tileType == tile.tileType) {
         field.play(field.selected, tile)

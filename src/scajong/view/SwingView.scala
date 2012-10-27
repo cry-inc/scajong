@@ -9,6 +9,8 @@ import javax.swing.JFrame._
 import javax.imageio.ImageIO
 
 class TileClickedEvent(val tile:Tile) extends Event
+class HintEvent extends Event
+class MovablesEvent extends Event
 
 class SwingView(field:Field, name:String = "") extends Frame {  
   title = "ScaJong"
@@ -32,13 +34,9 @@ object FieldPanel {
 }
 
 class FieldPanel(val field:Field, name:String) extends Panel {
-  
-  var images : Map[String, Image] = Map()
-  /*
-  var hint1:Tile = null
-  var hint2:Tile = null
-  var showMoveable:Boolean = true
-  */
+  private var images = Map[String, Image]()
+  private var showHint = false
+  private var showMoveable = false
   preferredSize = new Dimension(Field.Width * FieldPanel.CellWidth, 
       Field.Height * FieldPanel.CellHeight)
   loadImages
@@ -58,24 +56,6 @@ class FieldPanel(val field:Field, name:String) extends Panel {
     	images += name -> ImageIO.read(new File("tiles/" + name + ".png"))
   }
   
-  def drawTile(g:Graphics2D, tile:Tile) {
-    val x = tile.x * FieldPanel.CellWidth - 5
-    val y = tile.y * FieldPanel.CellHeight - 5 - 5 * tile.z
-    
-    g.drawImage(images("tile"), x, y, null)
-    g.drawImage(images(tile.tileType.name), x, y, null)
-    
-    /*
-  	if (showMoveable && !field.canMove(tile))
-	    g.drawImage(images("disabled"), x, y, null)
-  	
-  	if (tile == hint1 || tile == hint2)
-  	    g.drawImage(images("hint"), x, y, null)
-    */
-  	if (tile == field.selected)
-  	  g.drawImage(images("selected"), x, y, null)
-  }
-  
   def findTile(p:swing.Point) : Tile = {
     val tiles = field.getSortedTiles.reverse
     for (tile <- tiles) {
@@ -91,8 +71,21 @@ class FieldPanel(val field:Field, name:String) extends Panel {
   
   def mouseReleasedHandler(e:event.MouseReleased) {
     if (e.peer.getButton == MouseEvent.BUTTON1) {
-	    val tile = findTile(e.point)
-	    if (tile != null) publish(new TileClickedEvent(tile))
+      val tile = findTile(e.point)
+      println("button1: " + tile)
+	    if (tile != null)
+	      publish(new TileClickedEvent(tile))
+	    println("button1: after publish")
+    } else if (e.peer.getButton == MouseEvent.BUTTON2) {
+      publish(new MovablesEvent)
+      //showMoveable = !showMoveable
+      println("button2: " + showMoveable)
+      repaint
+    } else if (e.peer.getButton == MouseEvent.BUTTON3) {
+      publish(new HintEvent)
+      //showHint = !showHint
+      println("button3: " + showHint)
+      repaint
     }
   }
   
@@ -100,7 +93,29 @@ class FieldPanel(val field:Field, name:String) extends Panel {
     g.setColor(new Color(255, 255, 255))
     g.fillRect(0, 0, preferredSize.width, preferredSize.height)
     val tiles = field.getSortedTiles
-    for (tile <- tiles)
-      drawTile(g, tile)
+    var hint:TilePair = if (showHint) field.getHint else null
+    for (tile <- tiles) {
+      if (hint != null)
+      	drawTile(g, tile, (hint.tile1 == tile || hint.tile2 == tile))
+      else
+        drawTile(g, tile, false)
+    }
+    println("repainted")
+  }
+  
+  def drawTile(g:Graphics2D, tile:Tile, isHint:Boolean) {
+    val x = tile.x * FieldPanel.CellWidth - 5
+    val y = tile.y * FieldPanel.CellHeight - 5 - 5 * tile.z
+    g.drawImage(images("tile"), x, y, null)
+    g.drawImage(images(tile.tileType.name), x, y, null)
+  	if (showMoveable && !field.canMove(tile)) {
+  	  g.drawImage(images("disabled"), x, y, null)
+  	} 
+  	if (isHint) {
+  	  g.drawImage(images("hint"), x, y, null)
+  	}
+  	if (tile == field.selected) {
+  	  g.drawImage(images("selected"), x, y, null)
+  	}
   }
 }
