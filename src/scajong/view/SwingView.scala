@@ -77,7 +77,6 @@ class FieldPanel(val field:Field, name:String) extends Panel {
   
   def mouseReleasedHandler(e:event.MouseReleased) {
     // TODO: skip all but the left mouse button
-    // TODO: fix select below bug
     val tiles = field.getSortedTiles.reverse
     for (tile <- tiles) {
       val x = tile.x * FieldPanel.CellWidth - 5
@@ -85,6 +84,7 @@ class FieldPanel(val field:Field, name:String) extends Panel {
       val rect = new Rectangle(x, y, FieldPanel.TileImageWidth, FieldPanel.TileImageHeight)
       if (rect.contains(e.point)) {
         publish(new TileClickedEvent(tile))
+        return
       }
     }
   }
