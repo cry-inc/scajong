@@ -4,6 +4,7 @@ import scajong.model._
 import swing._
 import swing.event._
 import java.io.File
+import java.awt.event.MouseEvent
 import javax.swing.JFrame._
 import javax.imageio.ImageIO
 
@@ -75,17 +76,23 @@ class FieldPanel(val field:Field, name:String) extends Panel {
   	  g.drawImage(images("selected"), x, y, null)
   }
   
-  def mouseReleasedHandler(e:event.MouseReleased) {
-    // TODO: skip all but the left mouse button
+  def findTile(p:swing.Point) : Tile = {
     val tiles = field.getSortedTiles.reverse
     for (tile <- tiles) {
       val x = tile.x * FieldPanel.CellWidth - 5
       val y = tile.y * FieldPanel.CellHeight - 5 - 5 * tile.z
       val rect = new Rectangle(x, y, FieldPanel.TileImageWidth, FieldPanel.TileImageHeight)
-      if (rect.contains(e.point)) {
-        publish(new TileClickedEvent(tile))
-        return
+      if (rect.contains(p)) {
+        return tile
       }
+    }  
+    return null
+  }
+  
+  def mouseReleasedHandler(e:event.MouseReleased) {
+    if (e.peer.getButton == MouseEvent.BUTTON1) {
+	    val tile = findTile(e.point)
+	    if (tile != null) publish(new TileClickedEvent(tile))
     }
   }
   
