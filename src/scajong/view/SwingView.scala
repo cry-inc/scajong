@@ -40,8 +40,8 @@ class FieldPanel(val field:Field, name:String) extends Panel {
   private var images = Map[String, Image]()
   private var showHint = false
   private var showMoveable = false
-  preferredSize = new Dimension(Field.Width * FieldPanel.CellWidth, 
-      Field.Height * FieldPanel.CellHeight)
+  preferredSize = new Dimension(field.width * FieldPanel.CellWidth, 
+      field.height * FieldPanel.CellHeight)
   loadImages
   listenTo(mouse.clicks)
   listenTo(field)

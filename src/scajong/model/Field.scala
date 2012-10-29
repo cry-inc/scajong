@@ -3,11 +3,6 @@ package scajong.model
 import swing.Publisher
 import swing.event.Event
 
-object Field {
-  val Width = 40
-  val Height = 36
-}
-
 class WonEvent(val seconds:Int) extends Event
 class NoFurtherMovesEvent extends Event
 class FieldChangedEvent extends Event
@@ -18,6 +13,8 @@ class ScrambledEvent extends FieldChangedEvent
 class SelectedChangedEvent(val tile:Tile) extends FieldChangedEvent
 
 class Field(generator:IGenerator) extends Publisher {
+  var width = 40
+  var height = 26
   var tiles : Map[Int, Tile] = Map()
   var tileTypes : Array[TileType] = Array()
   private var _selected:Tile = null
@@ -36,7 +33,7 @@ class Field(generator:IGenerator) extends Publisher {
   }
  
   def calcTileIndex(x:Int, y:Int, z:Int) : Int = {
-    z * Field.Width * Field.Height + y * Field.Width + x
+    z * width * height + y * width + x
   }
   
   def +=(tile:Tile) {

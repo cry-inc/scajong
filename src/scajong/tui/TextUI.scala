@@ -61,10 +61,10 @@ class TextUI(val field:Field) {
   }
   
   def printField {
-    val line = "-" * (Field.Width * 3 + 2)
+    val line = "-" * (field.width * 3 + 2)
     println(line)
     var leftTile:Tile = null
-    for (y <- 0 until Field.Height; x <- 0 until Field.Width) {
+    for (y <- 0 until field.height; x <- 0 until field.width) {
       if (x == 0) print("|")
       val tile = field.topmostTile(x, y)
       
@@ -119,7 +119,7 @@ class TextUI(val field:Field) {
 	    	  printf("  ")
       }
       
-      if (x == Field.Width - 1) {
+      if (x == field.width - 1) {
         print("|\n")
         leftTile = null
       } else {
