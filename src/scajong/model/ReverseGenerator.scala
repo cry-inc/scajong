@@ -1,5 +1,6 @@
 package scajong.model
 
+import scala.io.Source
 import scala.util.Random
 import util.matching.Regex
 
@@ -47,14 +48,14 @@ class ReverseGenerator(val setupFile:String, val tileFile:String) extends IGener
   
   def loadStructure(field:Field, tileType:TileType, setupFile:String) {
     field.tiles = Map()
-    val source = io.Source.fromFile(setupFile)
+    val source = Source.fromFile(setupFile)
     val regexTile = new Regex("^(\\d+) (\\d+) (\\d+)$", "x", "y", "z")
     val regexDims = new Regex("^(\\d+) (\\d+)$", "width", "height")
     source.getLines().foreach({ _ match {
 	    case regexTile(x, y, z) => field += new Tile(x.toInt, y.toInt, z.toInt, tileType)
 	    case regexDims(width, height) => field.width = width.toInt; field.height = height.toInt
     }})
-    source.close()
+    source.close
   }
   
   def extractRemovableTiles(field:Field) : List[Tile] = {
