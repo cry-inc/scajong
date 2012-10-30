@@ -1,3 +1,6 @@
 /.cache
 /bin
 /.worksheet
+/target
+/project
+/cmd.exe.lnk
