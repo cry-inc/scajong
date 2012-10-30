@@ -2,5 +2,7 @@
 /bin
 /.worksheet
 /target
-/project
+/project/project
+/project/target
 /cmd.exe.lnk
+/scajong.jar

@@ -1,3 +1,15 @@
+import sbt._
+
+import AssemblyKeys._
+
+assemblySettings
+
+mainClass in assembly := Some("scajong.ScaJong")
+
+jarName in assembly := "scajong.jar"
+
+target in assembly := file("./")
+
 name := "scajong"
 
 version := "0.1"
