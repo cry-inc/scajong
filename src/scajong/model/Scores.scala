@@ -17,11 +17,25 @@ object Scores {
 }
 
 class Scores {
-	var scores = List[ScoreEntry]()
+
+  var scores = List[ScoreEntry]()
 	
 	def isInScoreboard(setup:String, ms:Int) = getScores(setup).filter(_.ms < ms).size < Scores.perSetupEntries
 	
-	def getScores(setup:String) = scores.filter(_.setup == setup)
+	implicit val scoreOrdering = Ordering.by((s: ScoreEntry) => s.ms)
+	def getScores(setup:String) = {
+    val sorted = scores.filter(_.setup == setup).sorted
+    sorted.take(10)
+  }
+	
+	def countScores(setup:String) = getScores(setup).length
+	
+	def getScorePosition(setup:String, ms:Int) = {
+	  if (!isInScoreboard(setup, ms))
+	    -1
+    else
+    	scores.count(e => e.setup == setup && e.ms < ms)
+	}
 	
 	def addScore(setup:String, name:String, ms:Int) {
 	  if (isInScoreboard(setup, ms)) {

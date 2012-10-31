@@ -1,0 +1,13 @@
+setup####User 0####110787
+setup####User 4####110787000
+setup####User 5####11078300
+setup####User 3####166000
+setup####User 2####15002
+setup####User 2####18800
+setup####User 1####167000
+setup####User 1####13000
+setup####User 1####11000
+setup####User 1####12000
+setup####User 0####11078380
+setup####User 1####11078280
+setup####User 2####11078180
