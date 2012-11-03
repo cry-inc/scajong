@@ -26,7 +26,7 @@ class SwingFieldPanel(val field:Field, name:String) extends Panel {
 
   reactions += {
     case e: MouseReleased => mouseReleasedHandler(e)
-    case e: FieldChangedEvent => repaint
+    case e: TilesChangedEvent => repaint
   }
 
   def loadImages {

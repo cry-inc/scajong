@@ -4,7 +4,7 @@ import scala.io.Source
 import scala.util.Random
 import util.matching.Regex
 
-class ReverseGenerator(val setupFile:String, val tileFile:String) extends IGenerator {
+class ReverseGenerator extends IGenerator {
   
   def scramble(field:Field) {
     var reversed = List[TilePair]()
@@ -38,7 +38,7 @@ class ReverseGenerator(val setupFile:String, val tileFile:String) extends IGener
     }
   }
   
-  def generate(field:Field) {
+  def generate(field:Field, setupFile:String, tileFile:String) {
     field.tileTypes = TileType.LoadTileTypes(tileFile)
     // Place the full set without a tile type
     loadStructure(field, null, setupFile);
@@ -54,6 +54,7 @@ class ReverseGenerator(val setupFile:String, val tileFile:String) extends IGener
     source.getLines().foreach({ _ match {
 	    case regexTile(x, y, z) => field += new Tile(x.toInt, y.toInt, z.toInt, tileType)
 	    case regexDims(width, height) => field.width = width.toInt; field.height = height.toInt
+	    case _ => // Nothing
     }})
     source.close
   }

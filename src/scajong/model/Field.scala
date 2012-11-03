@@ -2,25 +2,23 @@ package scajong.model
 
 import swing.Publisher
 import swing.event.Event
+import io.Source
+import java.io.File
 
 class WonEvent(val seconds:Int) extends Event
 class NoFurtherMovesEvent extends Event
-class FieldChangedEvent extends Event
+class TilesChangedEvent extends Event
+class ScrambledEvent extends TilesChangedEvent
+class SelectedChangedEvent(val tile:Tile) extends TilesChangedEvent
 
-class TileAddedEvent(val tile:Tile) extends FieldChangedEvent
-class TileRemovedEvent(val tile:Tile) extends FieldChangedEvent
-class ScrambledEvent extends FieldChangedEvent
-class SelectedChangedEvent(val tile:Tile) extends FieldChangedEvent
-
-class Field(generator:IGenerator) extends Publisher {
+class Field(val setupsDir:String, val tileFile:String, val generator:IGenerator) extends Publisher {
   var width = 40
   var height = 26
   var tiles : Map[Int, Tile] = Map()
   var tileTypes : Array[TileType] = Array()
+
   private var _selected:Tile = null
 
-  generator.generate(this)
-  
   def selected = _selected
   
   def selected_=(newSelected:Tile) {
@@ -38,12 +36,12 @@ class Field(generator:IGenerator) extends Publisher {
   
   def +=(tile:Tile) {
     tiles += (calcTileIndex(tile) -> tile)
-    publish(new TileAddedEvent(tile))
+    publish(new TilesChangedEvent)
   }
   
   def -=(tile:Tile) {
     tiles -= calcTileIndex(tile)
-    publish(new TileRemovedEvent(tile))
+    publish(new TilesChangedEvent)
   }
   
   def scramble {
@@ -128,4 +126,22 @@ class Field(generator:IGenerator) extends Publisher {
   }
   
   def nextMovePossible : Boolean = getHint != null
+  
+  private def getSetupName(setupFile:String) = {
+    val source = io.Source.fromFile(setupFile)
+    val lines = source.getLines.map(f => f).toList
+    source.close
+    lines(0)
+  }
+  
+  def listSetups = {
+    val fileArray = new File(setupsDir).listFiles
+    val fileNames = fileArray.map(f => f.getPath)    
+    fileNames.map(f => (f, getSetupName(f))).toMap
+  }
+  
+  def startNewGame(setupFile:String) {
+    generator.generate(this, setupFile, tileFile)
+    publish(new TilesChangedEvent)
+  }
 }
