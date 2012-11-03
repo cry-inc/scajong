@@ -3,6 +3,7 @@ package scajong.controller
 import scajong.model._
 import scajong.view._
 import swing._
+import swing.event._
 
 class SwingController(val field:Field) extends Reactor {
   
@@ -10,17 +11,20 @@ class SwingController(val field:Field) extends Reactor {
   
   reactions += {
     case e: TileClickedEvent => tileClicked(e.tile)
-    case _ => println("other event")
+    case e: ShowScoresEvent => println("show scores")
+    case e: StartGameEvent => println("start game")
+    case e: HintEvent => println("show hint")
+    case e: MoveablesEvent => println("show moveables")
   }
   
   def attachView(view:SwingView) {
     views = view :: views
-    listenTo(view.fieldPanel)
+    listenTo(view)
   }
   
   def detachView(view:SwingView) {
     views = views.filter(v => v != view)
-    deafTo(view.fieldPanel)
+    deafTo(view)
   }
   
   def tileClicked(tile:Tile) {

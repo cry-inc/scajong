@@ -8,7 +8,7 @@ object HelloWorld extends SimpleSwingApplication {
 	def top = new MainFrame {
 		val scores = new Scores
 	  scores.loadScores("scores.txt")
-		val scoresPanel = new SwingScores(scores)
+		val scoresPanel = new SwingScoresPanel(scores)
 	  title = "ScaJong Scores"
 	  contents = scoresPanel
 	  size = new Dimension(640, 480)
@@ -17,7 +17,7 @@ object HelloWorld extends SimpleSwingApplication {
 	}
 }
 
-class SwingScores(val scores:Scores) extends GridPanel(1, 1) {
+class SwingScoresPanel(val scores:Scores) extends GridPanel(1, 1) {
 
   var currentSetup = ""
   var currentTime = 0
