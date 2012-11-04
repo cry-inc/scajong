@@ -10,26 +10,36 @@ class NoFurtherMovesEvent extends Event
 class TilesChangedEvent extends Event
 class ScrambledEvent extends TilesChangedEvent
 class SelectedChangedEvent(val tile:Tile) extends TilesChangedEvent
+class StartGameEvent extends Event
+class InStartMenuChangedEvent(val inMenu:Boolean) extends Event
 
-class Field(val setupsDir:String, val tileFile:String, val generator:IGenerator) extends Publisher {
+class Field(setupsDir:String, tileFile:String, generator:IGenerator) extends Publisher {
   var width = 40
   var height = 26
-  var tiles : Map[Int, Tile] = Map()
-  var tileTypes : Array[TileType] = Array()
-
+  var tiles = Map[Int, Tile]()
+  val tileTypes = TileType.LoadTileTypes(tileFile)
+  val setups = listSetups
+  private var _inStartMenu = true
   private var _selected:Tile = null
-
+  
+  def inStartMenu = _inStartMenu
+  
+  def inStartMenu_=(newValue:Boolean) {
+    _inStartMenu = newValue;
+    publish(new InStartMenuChangedEvent(newValue))
+  }
+  
   def selected = _selected
   
   def selected_=(newSelected:Tile) {
     _selected = newSelected;
     publish(new SelectedChangedEvent(_selected))
   }
-
+  
   def calcTileIndex(tile:Tile):Int = {
     calcTileIndex(tile.x, tile.y, tile.z)
   }
- 
+  
   def calcTileIndex(x:Int, y:Int, z:Int) : Int = {
     z * width * height + y * width + x
   }
@@ -134,14 +144,14 @@ class Field(val setupsDir:String, val tileFile:String, val generator:IGenerator)
     lines(0)
   }
   
-  def listSetups = {
+  private def listSetups = {
     val fileArray = new File(setupsDir).listFiles
     val fileNames = fileArray.map(f => f.getPath)    
     fileNames.map(f => (f, getSetupName(f))).toMap
   }
   
   def startNewGame(setupFile:String) {
-    generator.generate(this, setupFile, tileFile)
-    publish(new TilesChangedEvent)
+    generator.generate(this, setupFile)
+    publish(new StartGameEvent)
   }
 }

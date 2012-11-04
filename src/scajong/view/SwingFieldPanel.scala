@@ -30,11 +30,13 @@ class SwingFieldPanel(val field:Field, name:String) extends Panel {
   }
 
   def loadImages {
-    for (tileType <- field.tileTypes)
-      images += tileType.name -> ImageIO.read(new File("tiles/" + tileType.name + ".png"))
     val specials = Array("disabled", "selected", "empty", "tile", "hint")
     for (name <- specials)
     	images += name -> ImageIO.read(new File("tiles/" + name + ".png"))
+  }
+  
+  def loadTileImage(name:String) {
+    images += name -> ImageIO.read(new File("tiles/" + name + ".png"))
   }
   
   def findTile(p:swing.Point) : Tile = {
@@ -53,10 +55,10 @@ class SwingFieldPanel(val field:Field, name:String) extends Panel {
   def mouseReleasedHandler(e:event.MouseReleased) {
     if (e.peer.getButton == MouseEvent.BUTTON1) {
       val tile = findTile(e.point)
-      println("button1: " + tile)
+      //println("button1: " + tile)
 	    if (tile != null)
 	      publish(new TileClickedEvent(tile))
-	    println("button1: after publish")
+	    //println("button1: after publish")
     } else if (e.peer.getButton == MouseEvent.BUTTON2) {
       publish(new MoveablesEvent)
       //showMoveable = !showMoveable
@@ -81,10 +83,11 @@ class SwingFieldPanel(val field:Field, name:String) extends Panel {
       else
         drawTile(g, tile, false)
     }
-    println("repainted")
   }
   
   def drawTile(g:Graphics2D, tile:Tile, isHint:Boolean) {
+    if (!images.contains(tile.tileType.name))
+      loadTileImage(tile.tileType.name)
     val x = tile.x * SwingFieldPanel.CellWidth - 5
     val y = tile.y * SwingFieldPanel.CellHeight - 5 - 5 * tile.z
     g.drawImage(images("tile"), x, y, null)

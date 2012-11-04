@@ -38,8 +38,7 @@ class ReverseGenerator extends IGenerator {
     }
   }
   
-  def generate(field:Field, setupFile:String, tileFile:String) {
-    field.tileTypes = TileType.LoadTileTypes(tileFile)
+  def generate(field:Field, setupFile:String) {
     // Place the full set without a tile type
     loadStructure(field, null, setupFile);
     // Set the tile types in a solvable order
