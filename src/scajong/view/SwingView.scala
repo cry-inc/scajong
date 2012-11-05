@@ -31,7 +31,7 @@ class SwingView(field:Field, name:String = "") extends Frame {
     case e: StartGameEvent => selectPanel(setupSelectPanel)
     case e: ShowScoresEvent => selectPanel(scoreSelectPanel)
     case e: WindowClosing => checkForLastFrame
-    case e: WonEvent => Dialog.showMessage(null, "Won game in " + e.seconds + " seconds!", "VICTORY", Dialog.Message.Info)
+    case e: WonEvent => scorePanel.addScore(e.setup, e.ms); selectPanel(scorePanel);
     case e: InStartMenuChangedEvent => selectPanel(setupSelectPanel)
   }
   

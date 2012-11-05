@@ -15,7 +15,7 @@ class SwingController(val field:Field) extends Reactor {
     case e: StartGameEvent => println("start game"); field.inStartMenu = true
     case e: HintEvent => println("show hint")
     case e: MoveablesEvent => println("show moveables")
-    case e: SetupSelectedEvent => setupSelected(e.setupFile)
+    case e: SetupSelectedEvent => field.startNewGame(e.setupFile, e.setupName)
   }
   
   def attachView(view:SwingView) {
@@ -38,9 +38,5 @@ class SwingController(val field:Field) extends Reactor {
         field.selected = tile
       }
     }
-  }
-  
-  def setupSelected(setupFile:String) {
-    field.startNewGame(setupFile)
   }
 }

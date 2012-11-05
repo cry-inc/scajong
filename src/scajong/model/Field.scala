@@ -4,8 +4,9 @@ import swing.Publisher
 import swing.event.Event
 import io.Source
 import java.io.File
+import java.sql.Date
 
-class WonEvent(val seconds:Int) extends Event
+class WonEvent(val setup:String, val ms:Int) extends Event
 class NoFurtherMovesEvent extends Event
 class TilesChangedEvent extends Event
 class ScrambledEvent extends TilesChangedEvent
@@ -22,6 +23,8 @@ class Field(setupsDir:String, tileFile:String, generator:IGenerator) extends Pub
   val scores = new Scores("scores.txt")
   private var _inStartMenu = true
   private var _selected:Tile = null
+  private var currentSetup = new String
+  private var startTime : Long = 0
   
   def inStartMenu = _inStartMenu
   
@@ -108,6 +111,8 @@ class Field(setupsDir:String, tileFile:String, generator:IGenerator) extends Pub
   }
 
   def play(tile1:Tile, tile2:Tile) : Boolean = {
+    if (startTime == 0)
+      startTime = System.currentTimeMillis
     if (tile1 == tile2)
       false
     else if (tile1.tileType != tile2.tileType)
@@ -117,13 +122,14 @@ class Field(setupsDir:String, tileFile:String, generator:IGenerator) extends Pub
     else {
   	  -=(tile1)
   	  -=(tile2);
-	  if (tiles.size == 0)
-	    //TODO: add game time
-	   	publish(new WonEvent(123))
-	  else if (!nextMovePossible)
-		  publish(new NoFurtherMovesEvent)
-	    true
-    }
+		  if (tiles.size == 0) {
+		    //TODO: add setup  and game time
+		    val elapsed:Int = (System.currentTimeMillis - startTime).toInt
+		   	publish(new WonEvent(currentSetup, elapsed))
+		  } else if (!nextMovePossible)
+			  publish(new NoFurtherMovesEvent)
+		  true
+	  }
   }
   
   def getHint : TilePair = {
@@ -152,8 +158,10 @@ class Field(setupsDir:String, tileFile:String, generator:IGenerator) extends Pub
     filtered.map(f => (f, getSetupName(f))).toMap
   }
   
-  def startNewGame(setupFile:String) {
+  def startNewGame(setupFile:String, setupName:String) {
+    startTime = 0
     generator.generate(this, setupFile)
+    currentSetup = setupName
     publish(new StartGameEvent)
   }
 }

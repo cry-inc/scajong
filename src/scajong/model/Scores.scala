@@ -4,6 +4,7 @@ import scala.io.Source
 import java.io.File
 import java.io.PrintWriter
 import util.matching.Regex
+import java.io.FileNotFoundException
 
 class ScoreEntry(val setup:String, val name:String, val ms:Int) {
   override def toString = {
@@ -58,13 +59,17 @@ class Scores(scoreFile:String) {
 	
 	private def loadScores {
 	  scores = List[ScoreEntry]()
-	  val source = Source.fromFile(scoreFile)
-	  val lines = source.getLines
-	  val regex = new Regex("^(.+)" + Scores.separator + "(.+)" + Scores.separator + "(\\d+)$", "setup", "name", "ms")
-	  lines.foreach(_ match {
-	    case regex(setup, name, ms) => scores = new ScoreEntry(setup, name, ms.toInt) :: scores; 
-      case _ => println("Unknown line!")
-	  })
-	  source.close
+	  try {
+		  val source = Source.fromFile(scoreFile)
+		  val lines = source.getLines
+		  val regex = new Regex("^(.+)" + Scores.separator + "(.+)" + Scores.separator + "(\\d+)$", "setup", "name", "ms")
+		  lines.foreach(_ match {
+		    case regex(setup, name, ms) => scores = new ScoreEntry(setup, name, ms.toInt) :: scores; 
+	      case _ => println("Unknown line!")
+		  })
+		  source.close
+	  } catch {
+			case e: FileNotFoundException => // Nothing
+	  }
 	}
 }
