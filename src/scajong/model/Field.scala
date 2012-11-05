@@ -146,8 +146,9 @@ class Field(setupsDir:String, tileFile:String, generator:IGenerator) extends Pub
   
   private def listSetups = {
     val fileArray = new File(setupsDir).listFiles
-    val fileNames = fileArray.map(f => f.getPath)    
-    fileNames.map(f => (f, getSetupName(f))).toMap
+    val fileNames = fileArray.map(f => f.getPath)
+    val filtered = fileNames.filter(_.endsWith(".txt"))
+    filtered.map(f => (f, getSetupName(f))).toMap
   }
   
   def startNewGame(setupFile:String) {
