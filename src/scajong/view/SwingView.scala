@@ -14,7 +14,7 @@ class ShowScoresEvent extends Event
 class SwingView(field:Field, name:String = "") extends Frame {  
   
   val fieldPanel = new SwingFieldPanel(field, name)
-  val scorePanel = new SwingScoresPanel(new Scores)
+  val scorePanel = new SwingScoresPanel(field.scores)
   val setupSelectPanel = new SwingSetupsPanel(field.setups, "Setup")
   val scoreSelectPanel = new SwingSetupsPanel(field.setups, "Score")
 
@@ -26,8 +26,10 @@ class SwingView(field:Field, name:String = "") extends Frame {
   
   reactions += {
     case e: TileClickedEvent => deafTo(this); /*println("view: TileClickedEvent rec.");*/ publish(e); /*println("view: TileClickedEvent forwared!");*/ listenTo(this)
-    case e: SetupSelectedEvent => deafTo(this); publish(e); listenTo(this)
-    case e: StartGameEvent => contents = fieldPanel
+    case e: SetupSelectedEvent => deafTo(this); publish(e); listenTo(this); selectPanel(fieldPanel)
+    case e: ScoreSelectedEvent => scorePanel.showScores(e.setupName); selectPanel(scorePanel)
+    case e: StartGameEvent => selectPanel(setupSelectPanel)
+    case e: ShowScoresEvent => selectPanel(scoreSelectPanel)
     case e: WindowClosing => checkForLastFrame
     case e: WonEvent => Dialog.showMessage(null, "Won game in " + e.seconds + " seconds!", "VICTORY", Dialog.Message.Info)
     case e: InStartMenuChangedEvent => selectPanel(setupSelectPanel)
@@ -67,7 +69,8 @@ class SwingView(field:Field, name:String = "") extends Frame {
   
   def checkForLastFrame {
     val frames = java.awt.Frame.getFrames()
-    if (frames.count(!_.isVisible) == 1) System.exit(0)
+    if (frames.count(!_.isVisible) >= 1) System.exit(0)
+    dispose
   }
   
   def selectPanel(panel:Panel) {

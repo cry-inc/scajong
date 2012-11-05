@@ -16,13 +16,16 @@ object Scores {
   val separator = "####"
 }
 
-class Scores {
+class Scores(scoreFile:String) {
 
   var scores = List[ScoreEntry]()
+  
+  loadScores
 	
 	def isInScoreboard(setup:String, ms:Int) = getScores(setup).filter(_.ms < ms).size < Scores.perSetupEntries
 	
 	implicit val scoreOrdering = Ordering.by((s: ScoreEntry) => s.ms)
+	
 	def getScores(setup:String) = {
     val sorted = scores.filter(_.setup == setup).sorted
     sorted.take(10)
@@ -40,21 +43,22 @@ class Scores {
 	def addScore(setup:String, name:String, ms:Int) {
 	  if (isInScoreboard(setup, ms)) {
 	    scores = new ScoreEntry(setup, name, ms) :: scores
+	    saveScores
 	  }
 	}
 	
-	def saveScores(file:String) {
+	private def saveScores {
 	  val lines = for (score <- scores) yield {
 	    score.setup + Scores.separator + score.name + Scores.separator + score.ms + "\n"
 	  }
-	  val writer = new PrintWriter(new File(file))
+	  val writer = new PrintWriter(new File(scoreFile))
     writer.write(lines.mkString)
     writer.close()
 	}
 	
-	def loadScores(file:String) {
+	private def loadScores {
 	  scores = List[ScoreEntry]()
-	  val source = Source.fromFile(file)
+	  val source = Source.fromFile(scoreFile)
 	  val lines = source.getLines
 	  val regex = new Regex("^(.+)" + Scores.separator + "(.+)" + Scores.separator + "(\\d+)$", "setup", "name", "ms")
 	  lines.foreach(_ match {

@@ -6,8 +6,7 @@ import swing.event._
 
 object HelloWorld extends SimpleSwingApplication {
 	def top = new MainFrame {
-		val scores = new Scores
-	  scores.loadScores("scores.txt")
+		val scores = new Scores("scores.txt")
 		val scoresPanel = new SwingScoresPanel(scores)
 	  title = "ScaJong Scores"
 	  contents = scoresPanel
@@ -25,7 +24,6 @@ class SwingScoresPanel(val scores:Scores) extends GridPanel(1, 1) {
   reactions += {
     case e:EditDone => {
       scores.addScore(currentSetup, e.source.text, currentTime)
-      scores.saveScores("scores.txt")
       deafTo(e.source)
       showScores(currentSetup)
     }
@@ -38,7 +36,7 @@ class SwingScoresPanel(val scores:Scores) extends GridPanel(1, 1) {
   
   def addCaptionsToGrid(setup:String) {
     contents += new Label("------")
-    contents += new Label(setup.capitalize)
+    contents += new Label(setup)
     contents += new Label("------")
     contents += new Label("Position")
     contents += new Label("Name")
@@ -66,7 +64,7 @@ class SwingScoresPanel(val scores:Scores) extends GridPanel(1, 1) {
 	    contents += new Label((pos+1).toString)
 	    contents += textField
 	    contents += new Label((ms / 1000.0).toString)
-	    for (i <- pos until scoreList.length) {
+	    for (i <- pos until scoreList.length-1) {
 		    contents += new Label((i+2).toString)
 	    	contents += new Label(scoreList(i).name)
 		    contents += new Label((scoreList(i).ms / 1000.0).toString)

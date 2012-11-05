@@ -19,6 +19,7 @@ class Field(setupsDir:String, tileFile:String, generator:IGenerator) extends Pub
   var tiles = Map[Int, Tile]()
   val tileTypes = TileType.LoadTileTypes(tileFile)
   val setups = listSetups
+  val scores = new Scores("scores.txt")
   private var _inStartMenu = true
   private var _selected:Tile = null
   
