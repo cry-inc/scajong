@@ -12,7 +12,6 @@ class SwingController(val field:Field) extends Reactor {
   reactions += {
     case e: TileClickedEvent => tileClicked(e.tile)
     case e: ShowScoresEvent => println("show scores")
-    case e: StartGameEvent => println("start game"); field.inStartMenu = true
     case e: HintEvent => println("show hint")
     case e: MoveablesEvent => println("show moveables")
     case e: SetupSelectedEvent => field.startNewGame(e.setupFile, e.setupName)

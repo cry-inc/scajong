@@ -10,6 +10,7 @@ class TileClickedEvent(val tile:Tile) extends Event
 class HintEvent extends Event
 class MoveablesEvent extends Event
 class ShowScoresEvent extends Event
+class StartGameEvent extends Event
 
 class SwingView(field:Field, name:String = "") extends Frame {  
   
@@ -32,7 +33,6 @@ class SwingView(field:Field, name:String = "") extends Frame {
     case e: ShowScoresEvent => selectPanel(scoreSelectPanel)
     case e: WindowClosing => checkForLastFrame
     case e: WonEvent => scorePanel.addScore(e.setup, e.ms); selectPanel(scorePanel);
-    case e: InStartMenuChangedEvent => selectPanel(setupSelectPanel)
   }
   
   val swingView = this
@@ -62,10 +62,10 @@ class SwingView(field:Field, name:String = "") extends Frame {
   title = "ScaJong"
   if (name.length > 0) title += " " + name
   
-  if (field.inStartMenu)
-    selectPanel(setupSelectPanel)
-  else
+  if (field.tiles.size > 0)
     selectPanel(fieldPanel)
+  else
+    selectPanel(setupSelectPanel)
   
   def checkForLastFrame {
     val frames = java.awt.Frame.getFrames()

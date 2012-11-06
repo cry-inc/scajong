@@ -9,10 +9,9 @@ import java.sql.Date
 class WonEvent(val setup:String, val ms:Int) extends Event
 class NoFurtherMovesEvent extends Event
 class TilesChangedEvent extends Event
-class ScrambledEvent extends TilesChangedEvent
-class SelectedChangedEvent(val tile:Tile) extends TilesChangedEvent
-class StartGameEvent extends Event
-class InStartMenuChangedEvent(val inMenu:Boolean) extends Event
+class ScrambledEvent extends Event
+class SelectedTileEvent(val tile:Tile) extends Event
+class CreatedGameEvent extends Event
 
 class Field(setupsDir:String, tileFile:String, generator:IGenerator) extends Publisher {
   var width = 40
@@ -21,23 +20,16 @@ class Field(setupsDir:String, tileFile:String, generator:IGenerator) extends Pub
   val tileTypes = TileType.LoadTileTypes(tileFile)
   val setups = listSetups
   val scores = new Scores("scores.txt")
-  private var _inStartMenu = true
   private var _selected:Tile = null
   private var currentSetup = new String
   private var startTime : Long = 0
-  
-  def inStartMenu = _inStartMenu
-  
-  def inStartMenu_=(newValue:Boolean) {
-    _inStartMenu = newValue;
-    publish(new InStartMenuChangedEvent(newValue))
-  }
-  
+  private var sendTileChangedEvent = true
+
   def selected = _selected
   
   def selected_=(newSelected:Tile) {
     _selected = newSelected;
-    publish(new SelectedChangedEvent(_selected))
+    publish(new SelectedTileEvent(_selected))
   }
   
   def calcTileIndex(tile:Tile):Int = {
@@ -50,17 +42,18 @@ class Field(setupsDir:String, tileFile:String, generator:IGenerator) extends Pub
   
   def +=(tile:Tile) {
     tiles += (calcTileIndex(tile) -> tile)
-    publish(new TilesChangedEvent)
+    if (sendTileChangedEvent) {
+	    //println("Tiles Changed Event +")
+	    publish(new TilesChangedEvent)
+    }
   }
   
   def -=(tile:Tile) {
     tiles -= calcTileIndex(tile)
-    publish(new TilesChangedEvent)
-  }
-  
-  def scramble {
-    generator.scramble(this)
-    publish(new ScrambledEvent)
+    if (sendTileChangedEvent) {
+	    //println("Tiles Changed Event +")
+	    publish(new TilesChangedEvent)
+    }
   }
 
   def getSortedTiles() : Array[Tile] = {
@@ -158,10 +151,19 @@ class Field(setupsDir:String, tileFile:String, generator:IGenerator) extends Pub
     filtered.map(f => (f, getSetupName(f))).toMap
   }
   
+  def scramble {
+    sendTileChangedEvent = false
+    generator.scramble(this)
+    sendTileChangedEvent = true
+    publish(new ScrambledEvent)
+  }
+  
   def startNewGame(setupFile:String, setupName:String) {
-    startTime = 0
+    sendTileChangedEvent = false
     generator.generate(this, setupFile)
+    sendTileChangedEvent = true
+    startTime = 0
     currentSetup = setupName
-    publish(new StartGameEvent)
+    publish(new CreatedGameEvent)
   }
 }
