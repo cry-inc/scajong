@@ -12,6 +12,7 @@ class SwingController(val field:Field) extends SimpleSubscriber {
       case n: SetupSelectedNotification => field.startNewGame(n.setupFile, n.setupName)
       case n: HintNotification => // TODO: add hint penalty to model
       case n: MoveablesNotification => // TODO: add moveables penalty to model
+      case n: AddScoreNotification => addScore(n.setup, n.playerName, n.ms)
       case _ => // Nothing
     }
   }
@@ -33,5 +34,9 @@ class SwingController(val field:Field) extends SimpleSubscriber {
         field.selected = tile
       }
     }
+  }
+  
+  def addScore(setup:String, playerName:String, ms:Int) {
+    field.scores.addScore(setup, playerName, ms)
   }
 }

@@ -27,6 +27,7 @@ class SwingView(field:Field, name:String = "") extends Frame with View with Simp
     case e: TileClickedEvent => sendNotification(new TileClickedNotification(e.tile))
     case e: SetupSelectedEvent => sendNotification(new SetupSelectedNotification(e.setupFile, e.setupName))
     case e: ScoreSelectedEvent => scorePanel.showScores(e.setupName); selectPanel(scorePanel)
+    case e: AddScoreEvent => sendNotification(new AddScoreNotification(e.setup, e.name, e.ms))
     case e: StartGameEvent => selectPanel(setupSelectPanel)
     case e: ShowScoresEvent => selectPanel(scoreSelectPanel)
     case e: WindowClosing => checkForLastFrame
@@ -36,6 +37,7 @@ class SwingView(field:Field, name:String = "") extends Frame with View with Simp
     sn match {
     	case n: WonNotification => won(n.setup, n.ms)
     	case n: CreatedGameNotification => selectPanel(fieldPanel)
+    	case n: NewScoreBoardEntryNotification => scorePanel.showScores(n.setup); selectPanel(scorePanel)
       case _ => // Nothing
     }
   }

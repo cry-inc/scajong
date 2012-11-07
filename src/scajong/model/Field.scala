@@ -18,7 +18,7 @@ class Field(setupsDir:String, tileFile:String, generator:IGenerator) extends Sim
   var tiles = Map[Int, Tile]()
   val tileTypes = TileType.LoadTileTypes(tileFile)
   val setups = listSetups
-  val scores = new Scores("scores.txt")
+  val scores = new Scores("scores.txt", this)
   private var _selected:Tile = null
   private var currentSetup = new String
   private var startTime : Long = 0

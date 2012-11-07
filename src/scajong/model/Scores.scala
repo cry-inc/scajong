@@ -1,5 +1,7 @@
 package scajong.model
 
+import scajong.util._
+
 import scala.io.Source
 import java.io.File
 import java.io.PrintWriter
@@ -17,7 +19,9 @@ object Scores {
   val separator = "####"
 }
 
-class Scores(scoreFile:String) {
+class NewScoreBoardEntryNotification(val setup:String) extends SimpleNotification
+
+class Scores(scoreFile:String, publisher:SimplePublisher) {
 
   var scores = List[ScoreEntry]()
   
@@ -45,6 +49,7 @@ class Scores(scoreFile:String) {
 	  if (isInScoreboard(setup, ms)) {
 	    scores = new ScoreEntry(setup, name, ms) :: scores
 	    saveScores
+	    publisher.sendNotification(new NewScoreBoardEntryNotification(setup))
 	  }
 	}
 	

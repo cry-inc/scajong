@@ -4,17 +4,7 @@ import scajong.model._
 import swing._
 import swing.event._
 
-object HelloWorld extends SimpleSwingApplication {
-	def top = new MainFrame {
-		val scores = new Scores("scores.txt")
-		val scoresPanel = new SwingScoresPanel(scores)
-	  title = "ScaJong Scores"
-	  contents = scoresPanel
-	  size = new Dimension(640, 480)
-	  visible = true
-	  scoresPanel.addScore("setup", 110787)
-	}
-}
+class AddScoreEvent(val setup:String, val name:String, val ms:Int) extends Event
 
 class SwingScoresPanel(val scores:Scores) extends GridPanel(1, 1) {
 
@@ -23,8 +13,7 @@ class SwingScoresPanel(val scores:Scores) extends GridPanel(1, 1) {
   
   reactions += {
     case e:EditDone => {
-      // TODO: Move model manipulation to controller
-      scores.addScore(currentSetup, e.source.text, currentTime)
+      publish(new AddScoreEvent(currentSetup, e.source.text, currentTime))
       deafTo(e.source)
       showScores(currentSetup)
     }
