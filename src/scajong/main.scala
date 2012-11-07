@@ -9,6 +9,6 @@ object ScaJong {
 		val field = new Field("setups/", "tiles.txt", new ReverseGenerator)
 		val controller = new SwingController(field)
 		controller.attachView(new SwingView(field, "View 1"))
-		//controller.attachView(new SwingView(field, "View 2"))
+		controller.attachView(new SwingView(field, "View 2"))
 	}
 }

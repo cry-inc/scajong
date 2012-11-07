@@ -1,6 +1,7 @@
 package scajong.view
 
 import scajong.model._
+import scajong.util._
 import swing._
 import swing.event._
 import java.io.File
@@ -14,7 +15,11 @@ object SwingFieldPanel {
   val TileImageHeight= 95
 }
 
-class SwingFieldPanel(val field:Field, name:String) extends Panel {
+class TileClickedEvent(val tile:Tile) extends Event
+class HintEvent extends Event
+class MoveablesEvent extends Event
+
+class SwingFieldPanel(val field:Field, name:String) extends Panel with SimpleSubscriber {
   private var images = Map[String, Image]()
   private var showHint = false
   private var showMoveable = false
@@ -22,13 +27,19 @@ class SwingFieldPanel(val field:Field, name:String) extends Panel {
       field.height * SwingFieldPanel.CellHeight)
   loadImages
   listenTo(mouse.clicks)
-  listenTo(field)
+  field.addSubscriber(this)
 
   reactions += {
     case e: MouseReleased => mouseReleasedHandler(e)
-    case e: TilesChangedEvent => repaint
-    case e: SelectedTileEvent => repaint
-    case e: CreatedGameEvent => repaint
+  }
+  
+  override def processNotifications(sn:SimpleNotification) {
+    sn match {
+      case n:TileClickedNotification => repaint
+      case n:SelectedTileNotification => repaint
+      case n:CreatedGameNotification => repaint
+      case _ => // Nothing
+    }
   }
 
   def loadImages {
@@ -57,17 +68,15 @@ class SwingFieldPanel(val field:Field, name:String) extends Panel {
   def mouseReleasedHandler(e:event.MouseReleased) {
     if (e.peer.getButton == MouseEvent.BUTTON1) {
       val tile = findTile(e.point)
-      //println("button1: " + tile)
 	    if (tile != null)
 	      publish(new TileClickedEvent(tile))
-	    //println("button1: after publish")
     } else if (e.peer.getButton == MouseEvent.BUTTON2) {
-      publish(new MoveablesEvent)
+      //publish(new MoveablesEvent)
       //showMoveable = !showMoveable
       println("button2: " + showMoveable)
       repaint
     } else if (e.peer.getButton == MouseEvent.BUTTON3) {
-      publish(new HintEvent)
+      //publish(new HintEvent)
       //showHint = !showHint
       println("button3: " + showHint)
       repaint

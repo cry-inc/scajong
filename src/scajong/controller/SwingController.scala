@@ -1,34 +1,30 @@
 package scajong.controller
 
+import scajong.util._
 import scajong.model._
 import scajong.view._
-import swing._
-import swing.event._
 
-class SwingController(val field:Field) extends Reactor {
+class SwingController(val field:Field) extends SimpleSubscriber {
   
-  var views:List[SwingView] = Nil
-  
-  reactions += {
-    case e: TileClickedEvent => tileClicked(e.tile)
-    case e: ShowScoresEvent => println("show scores")
-    case e: HintEvent => println("show hint")
-    case e: MoveablesEvent => println("show moveables")
-    case e: SetupSelectedEvent => field.startNewGame(e.setupFile, e.setupName)
+  override def processNotifications(sn:SimpleNotification) {
+    sn match {
+      case n: TileClickedNotification => tileClicked(n.tile)
+      case n: SetupSelectedNotification => field.startNewGame(n.path, n.name)
+      case n: HintNotification => // TODO: add hint penalty to model
+      case n: MoveablesNotification => // TODO: add moveables penalty to model
+      case _ => // Nothing
+    }
   }
-  
+
   def attachView(view:SwingView) {
-    views = view :: views
-    listenTo(view)
+    view.addSubscriber(this)
   }
   
   def detachView(view:SwingView) {
-    views = views.filter(v => v != view)
-    deafTo(view)
+    view.remSubscriber(this)
   }
   
   def tileClicked(tile:Tile) {
-    println("tileClicked: " + tile)
     if (field.canMove(tile)) {
       if (field.selected != null && field.selected.tileType == tile.tileType) {
         field.play(field.selected, tile)

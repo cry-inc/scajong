@@ -1,38 +1,49 @@
 package scajong.view
 
 import scajong.model._
+import scajong.util._
+
 import swing._
 import swing.event._
 import java.io.File
 import javax.swing.JFrame._
 
-class TileClickedEvent(val tile:Tile) extends Event
-class HintEvent extends Event
-class MoveablesEvent extends Event
+class TileClickedNotification(val tile:Tile) extends SimpleNotification
+class SetupSelectedNotification(val path:String, val name:String) extends SimpleNotification
+class HintNotification extends SimpleNotification
+class MoveablesNotification extends SimpleNotification
+
 class ShowScoresEvent extends Event
 class StartGameEvent extends Event
 
-class SwingView(field:Field, name:String = "") extends Frame {  
+class SwingView(field:Field, name:String = "") extends Frame with SimplePublisher with SimpleSubscriber {  
   
   val fieldPanel = new SwingFieldPanel(field, name)
   val scorePanel = new SwingScoresPanel(field.scores)
   val setupSelectPanel = new SwingSetupsPanel(field.setups, "Setup")
   val scoreSelectPanel = new SwingSetupsPanel(field.setups, "Score")
 
-  listenTo(field)
+  field.addSubscriber(this)
   listenTo(fieldPanel)
   listenTo(scorePanel)
   listenTo(setupSelectPanel)
   listenTo(scoreSelectPanel)
   
   reactions += {
-    case e: TileClickedEvent => deafTo(this); /*println("view: TileClickedEvent rec.");*/ publish(e); /*println("view: TileClickedEvent forwared!");*/ listenTo(this)
-    case e: SetupSelectedEvent => deafTo(this); publish(e); listenTo(this); selectPanel(fieldPanel)
+    case e: TileClickedEvent => sendNotification(new TileClickedNotification(e.tile))
+    case e: SetupSelectedEvent => sendNotification(new SetupSelectedNotification(e.setupFile, e.setupName))
     case e: ScoreSelectedEvent => scorePanel.showScores(e.setupName); selectPanel(scorePanel)
     case e: StartGameEvent => selectPanel(setupSelectPanel)
     case e: ShowScoresEvent => selectPanel(scoreSelectPanel)
     case e: WindowClosing => checkForLastFrame
-    case e: WonEvent => scorePanel.addScore(e.setup, e.ms); selectPanel(scorePanel);
+  }
+  
+  override def processNotifications(sn:SimpleNotification) {
+    sn match {
+    	case n: WonNotification => won(n.setup, n.ms)
+    	case n: CreatedGameNotification => selectPanel(fieldPanel)
+      case _ => // Nothing
+    }
   }
   
   val swingView = this
@@ -78,5 +89,15 @@ class SwingView(field:Field, name:String = "") extends Frame {
     minimumSize = new Dimension(800, 600)
     contents = panel
     visible = true
+  }
+  
+  def won(setup:String, ms:Int) {
+    if (field.scores.isInScoreboard(setup, ms)) {
+      scorePanel.addScore(setup, ms)
+    } else {
+      Dialog.showMessage(null, "You time: " + (ms / 1000) + " seconds", "Missed scoreboard entry")
+      scorePanel.showScores(setup)
+    }
+    selectPanel(scorePanel)
   }
 }

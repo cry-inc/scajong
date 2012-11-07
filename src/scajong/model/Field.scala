@@ -1,19 +1,18 @@
 package scajong.model
 
-import swing.Publisher
-import swing.event.Event
+import scajong.util._
 import io.Source
 import java.io.File
 import java.sql.Date
 
-class WonEvent(val setup:String, val ms:Int) extends Event
-class NoFurtherMovesEvent extends Event
-class TilesChangedEvent extends Event
-class ScrambledEvent extends Event
-class SelectedTileEvent(val tile:Tile) extends Event
-class CreatedGameEvent extends Event
+class WonNotification(val setup:String, val ms:Int) extends SimpleNotification
+class NoFurtherMovesNotification extends SimpleNotification
+class TilesChangedNotification extends SimpleNotification
+class ScrambledNotification extends SimpleNotification
+class SelectedTileNotification(val tile:Tile) extends SimpleNotification
+class CreatedGameNotification extends SimpleNotification
 
-class Field(setupsDir:String, tileFile:String, generator:IGenerator) extends Publisher {
+class Field(setupsDir:String, tileFile:String, generator:IGenerator) extends SimplePublisher {
   var width = 40
   var height = 26
   var tiles = Map[Int, Tile]()
@@ -29,7 +28,7 @@ class Field(setupsDir:String, tileFile:String, generator:IGenerator) extends Pub
   
   def selected_=(newSelected:Tile) {
     _selected = newSelected;
-    publish(new SelectedTileEvent(_selected))
+    sendNotification(new SelectedTileNotification(_selected))
   }
   
   def calcTileIndex(tile:Tile):Int = {
@@ -43,16 +42,14 @@ class Field(setupsDir:String, tileFile:String, generator:IGenerator) extends Pub
   def +=(tile:Tile) {
     tiles += (calcTileIndex(tile) -> tile)
     if (sendTileChangedEvent) {
-	    //println("Tiles Changed Event +")
-	    publish(new TilesChangedEvent)
+	    sendNotification(new TilesChangedNotification)
     }
   }
   
   def -=(tile:Tile) {
     tiles -= calcTileIndex(tile)
     if (sendTileChangedEvent) {
-	    //println("Tiles Changed Event +")
-	    publish(new TilesChangedEvent)
+	    sendNotification(new TilesChangedNotification)
     }
   }
 
@@ -116,11 +113,10 @@ class Field(setupsDir:String, tileFile:String, generator:IGenerator) extends Pub
   	  -=(tile1)
   	  -=(tile2);
 		  if (tiles.size == 0) {
-		    //TODO: add setup  and game time
 		    val elapsed:Int = (System.currentTimeMillis - startTime).toInt
-		   	publish(new WonEvent(currentSetup, elapsed))
+		   	sendNotification(new WonNotification(currentSetup, elapsed))
 		  } else if (!nextMovePossible)
-			  publish(new NoFurtherMovesEvent)
+			  sendNotification(new NoFurtherMovesNotification)
 		  true
 	  }
   }
@@ -155,7 +151,7 @@ class Field(setupsDir:String, tileFile:String, generator:IGenerator) extends Pub
     sendTileChangedEvent = false
     generator.scramble(this)
     sendTileChangedEvent = true
-    publish(new ScrambledEvent)
+    sendNotification(new ScrambledNotification)
   }
   
   def startNewGame(setupFile:String, setupName:String) {
@@ -164,6 +160,6 @@ class Field(setupsDir:String, tileFile:String, generator:IGenerator) extends Pub
     sendTileChangedEvent = true
     startTime = 0
     currentSetup = setupName
-    publish(new CreatedGameEvent)
+    sendNotification(new CreatedGameNotification)
   }
 }
