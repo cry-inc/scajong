@@ -6,9 +6,9 @@ import scajong.controller._
 
 object ScaJong {
 	def main(args: Array[String]) {
-		val field = new Field("setups/", "tiles.txt", new ReverseGenerator)
-		val controller = new SwingController(field)
-		controller.attachView(new SwingView(field, "View 1"))
-		controller.attachView(new SwingView(field, "View 2"))
+		val game = new Game("setups/", "tiles.txt", new ReverseGenerator)
+		val controller = new SwingController(game)
+		controller.attachView(new SwingView(game, "View 1"))
+		controller.attachView(new SwingView(game, "View 2"))
 	}
 }

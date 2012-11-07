@@ -5,24 +5,24 @@ import util.matching.Regex
 
 object TextUI {
   def main(args: Array[String]) {
-    val field = new Field("setups/", "tiles.txt", new ReverseGenerator)
-    field.startNewGame("setups/camel.txt", "Camel")
-    new TextUI(field)
+    val game = new Game("setups/", "tiles.txt", new ReverseGenerator)
+    game.startNewGame("setups/camel.txt", "Camel")
+    new TextUI(game)
   }
 }
 
-class TextUI(val field:Field) {
+class TextUI(val game:Game) {
   
   printField()
   run
   
   def playTiles(a:Int, b:Int) {
-		if (!field.tiles.contains(a))
+		if (!game.tiles.contains(a))
 			println("Could not find tile with id " + a + "!")
-		else if (!field.tiles.contains(b))
+		else if (!game.tiles.contains(b))
 		  println("Could not find tile with id " + b + "!")
 		else {
-		  if (field.play(field.tiles(a), field.tiles(b))) {
+		  if (game.play(game.tiles(a), game.tiles(b))) {
 		    println("Removed the two tiles!")
 		    printField()
 		} else
@@ -39,7 +39,7 @@ class TextUI(val field:Field) {
         case "q" => return
         case "h" => printHint
         case "m" => printMoveables
-        case "s" => field.scramble; printField()
+        case "s" => game.scramble; printField()
         case s:String => {
           val regex = new Regex("^(\\d+) (\\d+)$", "a", "b")
           regex.findFirstIn(s) match {
@@ -91,8 +91,8 @@ class TextUI(val field:Field) {
   }
   
   def printHint {
-    val hint = field.getHint
-    println(field.calcTileIndex(hint.tile1) + " and " + field.calcTileIndex(hint.tile2))
+    val hint = game.getHint
+    println(game.calcTileIndex(hint.tile1) + " and " + game.calcTileIndex(hint.tile2))
   }
   
   def printMoveables {
@@ -100,18 +100,18 @@ class TextUI(val field:Field) {
   }
   
   def printField(moveablesOnly : Boolean = false) {
-    val line = "-" * (field.width * 3 + 2)
+    val line = "-" * (game.width * 3 + 2)
     println(line)
     var leftTile:Tile = null
-    for (y <- 0 until field.height; x <- 0 until field.width) {
+    for (y <- 0 until game.height; x <- 0 until game.width) {
       if (x == 0) print("|")
       
-      val tile = field.topmostTile(x, y)
+      val tile = game.topmostTile(x, y)
       if (tile == null) {
         if (leftTile == null) print("   ") else print("|  ")
       } else {
-        val moveable = field.canMove(tile)
-        val id = field.calcTileIndex(tile)
+        val moveable = game.canMove(tile)
+        val id = game.calcTileIndex(tile)
         val (i1, i2, i3) = splitTileIdIntoStrings(id)
         
         var center = " "
@@ -143,7 +143,7 @@ class TextUI(val field:Field) {
 	    	  print("  ")
       }
       
-      if (x == field.width - 1) {
+      if (x == game.width - 1) {
         print("|\n")
         leftTile = null
       } else {

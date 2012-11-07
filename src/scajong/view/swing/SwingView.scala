@@ -10,14 +10,14 @@ import javax.swing.JFrame._
 class ShowScoresEvent extends Event
 class StartGameEvent extends Event
 
-class SwingView(field:Field, name:String = "") extends Frame with View with SimpleSubscriber {  
+class SwingView(game:Game, name:String = "") extends Frame with View with SimpleSubscriber {  
   
-  val fieldPanel = new SwingFieldPanel(field, name)
-  val scorePanel = new SwingScoresPanel(field.scores)
-  val setupSelectPanel = new SwingSetupsPanel(field.setups, "Setup")
-  val scoreSelectPanel = new SwingSetupsPanel(field.setups, "Score")
+  val fieldPanel = new SwingFieldPanel(game, name)
+  val scorePanel = new SwingScoresPanel(game.scores)
+  val setupSelectPanel = new SwingSetupsPanel(game.setups, "Setup")
+  val scoreSelectPanel = new SwingSetupsPanel(game.setups, "Score")
 
-  field.addSubscriber(this)
+  game.addSubscriber(this)
   listenTo(fieldPanel)
   listenTo(scorePanel)
   listenTo(setupSelectPanel)
@@ -69,7 +69,7 @@ class SwingView(field:Field, name:String = "") extends Frame with View with Simp
   title = "ScaJong"
   if (name.length > 0) title += " " + name
   
-  if (field.tiles.size > 0)
+  if (game.tiles.size > 0)
     selectPanel(fieldPanel)
   else
     selectPanel(setupSelectPanel)
@@ -88,7 +88,7 @@ class SwingView(field:Field, name:String = "") extends Frame with View with Simp
   }
   
   def won(setup:String, ms:Int) {
-    if (field.scores.isInScoreboard(setup, ms)) {
+    if (game.scores.isInScoreboard(setup, ms)) {
       scorePanel.addScore(setup, ms)
     } else {
       Dialog.showMessage(null, "You time: " + (ms / 1000) + " seconds", "Missed scoreboard entry")

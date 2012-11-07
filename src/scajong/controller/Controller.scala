@@ -4,12 +4,12 @@ import scajong.util._
 import scajong.model._
 import scajong.view._
 
-class SwingController(val field:Field) extends SimpleSubscriber {
+class SwingController(val game:Game) extends SimpleSubscriber {
   
   override def processNotifications(sn:SimpleNotification) {
     sn match {
       case n: TileClickedNotification => tileClicked(n.tile)
-      case n: SetupSelectedNotification => field.startNewGame(n.setupFile, n.setupName)
+      case n: SetupSelectedNotification => game.startNewGame(n.setupFile, n.setupName)
       case n: HintNotification => // TODO: add hint penalty to model
       case n: MoveablesNotification => // TODO: add moveables penalty to model
       case n: AddScoreNotification => addScore(n.setup, n.playerName, n.ms)
@@ -26,17 +26,17 @@ class SwingController(val field:Field) extends SimpleSubscriber {
   }
   
   def tileClicked(tile:Tile) {
-    if (field.canMove(tile)) {
-      if (field.selected != null && field.selected.tileType == tile.tileType) {
-        field.play(field.selected, tile)
-        field.selected = null
+    if (game.canMove(tile)) {
+      if (game.selected != null && game.selected.tileType == tile.tileType) {
+        game.play(game.selected, tile)
+        game.selected = null
       } else {
-        field.selected = tile
+        game.selected = tile
       }
     }
   }
   
   def addScore(setup:String, playerName:String, ms:Int) {
-    field.scores.addScore(setup, playerName, ms)
+    game.scores.addScore(setup, playerName, ms)
   }
 }

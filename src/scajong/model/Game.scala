@@ -12,7 +12,7 @@ class ScrambledNotification extends SimpleNotification
 class SelectedTileNotification(val tile:Tile) extends SimpleNotification
 class CreatedGameNotification extends SimpleNotification
 
-class Field(setupsDir:String, tileFile:String, generator:IGenerator) extends SimplePublisher {
+class Game(setupsDir:String, tileFile:String, generator:Generator) extends SimplePublisher {
   var width = 40
   var height = 26
   var tiles = Map[Int, Tile]()

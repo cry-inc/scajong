@@ -20,15 +20,15 @@ class TileClickedEvent(val tile:Tile) extends Event
 class HintEvent extends Event
 class MoveablesEvent extends Event
 
-class SwingFieldPanel(val field:Field, name:String) extends Panel with SimpleSubscriber {
+class SwingFieldPanel(val game:Game, name:String) extends Panel with SimpleSubscriber {
   private var images = Map[String, Image]()
   private var showHint = false
   private var showMoveable = false
-  preferredSize = new Dimension(field.width * SwingFieldPanel.CellWidth, 
-      field.height * SwingFieldPanel.CellHeight)
+  preferredSize = new Dimension(game.width * SwingFieldPanel.CellWidth, 
+      game.height * SwingFieldPanel.CellHeight)
   loadImages
   listenTo(mouse.clicks)
-  field.addSubscriber(this)
+  game.addSubscriber(this)
 
   reactions += {
     case e: MouseReleased => mouseReleasedHandler(e)
@@ -54,7 +54,7 @@ class SwingFieldPanel(val field:Field, name:String) extends Panel with SimpleSub
   }
   
   def findTile(p:swing.Point) : Tile = {
-    val tiles = field.getSortedTiles.reverse
+    val tiles = game.getSortedTiles.reverse
     for (tile <- tiles) {
       val x = tile.x * SwingFieldPanel.CellWidth - 5
       val y = tile.y * SwingFieldPanel.CellHeight - 5 - 5 * tile.z
@@ -87,8 +87,8 @@ class SwingFieldPanel(val field:Field, name:String) extends Panel with SimpleSub
   override def paintComponent(g: Graphics2D) : Unit = {
     g.setColor(new Color(255, 255, 255))
     g.fillRect(0, 0, preferredSize.width, preferredSize.height)
-    val tiles = field.getSortedTiles
-    var hint:TilePair = if (showHint) field.getHint else null
+    val tiles = game.getSortedTiles
+    var hint:TilePair = if (showHint) game.getHint else null
     for (tile <- tiles) {
       if (hint != null)
       	drawTile(g, tile, (hint.tile1 == tile || hint.tile2 == tile))
@@ -104,13 +104,13 @@ class SwingFieldPanel(val field:Field, name:String) extends Panel with SimpleSub
     val y = tile.y * SwingFieldPanel.CellHeight - 5 - 5 * tile.z
     g.drawImage(images("tile"), x, y, null)
     g.drawImage(images(tile.tileType.name), x, y, null)
-  	if (showMoveable && !field.canMove(tile)) {
+  	if (showMoveable && !game.canMove(tile)) {
   	  g.drawImage(images("disabled"), x, y, null)
   	} 
   	if (isHint) {
   	  g.drawImage(images("hint"), x, y, null)
   	}
-  	if (tile == field.selected) {
+  	if (tile == game.selected) {
   	  g.drawImage(images("selected"), x, y, null)
   	}
   }
