@@ -1,22 +1,16 @@
-package scajong.view
+package scajong.view.swing
 
 import scajong.model._
 import scajong.util._
-
-import swing._
-import swing.event._
-import java.io.File
+import scajong.view._
+import scala.swing._
+import scala.swing.event._
 import javax.swing.JFrame._
-
-class TileClickedNotification(val tile:Tile) extends SimpleNotification
-class SetupSelectedNotification(val path:String, val name:String) extends SimpleNotification
-class HintNotification extends SimpleNotification
-class MoveablesNotification extends SimpleNotification
 
 class ShowScoresEvent extends Event
 class StartGameEvent extends Event
 
-class SwingView(field:Field, name:String = "") extends Frame with SimplePublisher with SimpleSubscriber {  
+class SwingView(field:Field, name:String = "") extends Frame with View with SimpleSubscriber {  
   
   val fieldPanel = new SwingFieldPanel(field, name)
   val scorePanel = new SwingScoresPanel(field.scores)

@@ -1,12 +1,13 @@
-package scajong.view
+package scajong.view.swing
 
 import scajong.model._
 import scajong.util._
+
 import swing._
 import swing.event._
-import java.io.File
-import java.awt.event.MouseEvent
 import javax.imageio.ImageIO
+import java.io.File
+import java.awt.event._
 
 object SwingFieldPanel {
   val CellWidth = 30
@@ -35,7 +36,7 @@ class SwingFieldPanel(val field:Field, name:String) extends Panel with SimpleSub
   
   override def processNotifications(sn:SimpleNotification) {
     sn match {
-      case n:TileClickedNotification => repaint
+      case n:TilesChangedNotification => repaint
       case n:SelectedTileNotification => repaint
       case n:CreatedGameNotification => repaint
       case _ => // Nothing

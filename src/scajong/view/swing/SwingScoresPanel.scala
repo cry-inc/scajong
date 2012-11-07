@@ -1,4 +1,4 @@
-package scajong.view
+package scajong.view.swing
 
 import scajong.model._
 import swing._
@@ -23,6 +23,7 @@ class SwingScoresPanel(val scores:Scores) extends GridPanel(1, 1) {
   
   reactions += {
     case e:EditDone => {
+      // TODO: Move model manipulation to controller
       scores.addScore(currentSetup, e.source.text, currentTime)
       deafTo(e.source)
       showScores(currentSetup)

@@ -1,8 +1,7 @@
-package scajong.view
+package scajong.view.swing
 
 import swing._
 import scala.swing.event.Event
-import java.awt.Dialog
 import javax.swing.ImageIcon
 
 class SetupSelectedEvent(val setupFile:String, val setupName:String) extends Event

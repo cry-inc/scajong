@@ -1,7 +1,7 @@
 package scajong
 
 import scajong.model._
-import scajong.view._
+import scajong.view.swing._
 import scajong.controller._
 
 object ScaJong {

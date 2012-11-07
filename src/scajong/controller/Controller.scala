@@ -9,18 +9,18 @@ class SwingController(val field:Field) extends SimpleSubscriber {
   override def processNotifications(sn:SimpleNotification) {
     sn match {
       case n: TileClickedNotification => tileClicked(n.tile)
-      case n: SetupSelectedNotification => field.startNewGame(n.path, n.name)
+      case n: SetupSelectedNotification => field.startNewGame(n.setupFile, n.setupName)
       case n: HintNotification => // TODO: add hint penalty to model
       case n: MoveablesNotification => // TODO: add moveables penalty to model
       case _ => // Nothing
     }
   }
 
-  def attachView(view:SwingView) {
+  def attachView(view:View) {
     view.addSubscriber(this)
   }
   
-  def detachView(view:SwingView) {
+  def detachView(view:View) {
     view.remSubscriber(this)
   }
   
