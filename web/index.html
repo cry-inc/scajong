@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>Scajong</title>
+        <script src="jquery.js"></script>
+        <script type="text/javascript">
+
+            var tileImages = new Array();
+            var tileCounter = 0;
+            var numberOfAllTiles = -1;
+            var showHint = false;
+            var showMoveables = false;
+            var tiles = new Array();
+        
+            function redraw() {
+                $.getJSON('/field.json', processFieldData);
+            }
+            
+            function processFieldData(json) {
+                var canvas = document.getElementById('field');
+                canvas = canvas.getContext('2d');
+                canvas.fillStyle = "rgb(255, 255, 255)";
+                canvas.fillRect(0, 0, 1200, 720);
+                //canvas.width = json['field']['fieldwidth'] * 30;
+                //canvas.height = json['field']['fieldheight'] * 20;
+                tiles = json['field']['tiles'];
+                $.each(tiles, function(i, item) {
+                    drawTile(canvas, item);
+                });
+                setTimeout(redraw, 200);
+            }
+            
+            function drawTile(canvas, tile) {
+                var x = tile.x * 30 - 5;
+                var y = tile.y * 20 - 5 - 5 * tile.z;
+                canvas.drawImage(tileImages['tile'], x, y);
+                canvas.drawImage(tileImages[tile.type], x, y);
+                if (showHint && tile.hint)
+                    canvas.drawImage(tileImages['hint'], x, y);
+                if (showMoveables && !tile.moveable)
+                    canvas.drawImage(tileImages['disabled'], x, y);
+                if (tile.selected)
+                    canvas.drawImage(tileImages['selected'], x, y);
+            }
+            
+            function loadTiles() {
+                $.getJSON('/tiles.json', processTilesData);
+            }
+            
+            function processTilesData(json) {
+                numberOfAllTiles = json['types'].length;
+                var otherImages = new Array();
+                otherImages[0] = 'selected';
+                otherImages[1] = 'hint';
+                otherImages[2] = 'empty';
+                otherImages[3] = 'tile';
+                otherImages[4] = 'disabled';
+                numberOfAllTiles += otherImages.length;
+                $.each(json['types'], function(i, item) {
+                    tileImages[item.name] = new Image();
+                    tileImages[item.name].onload = tileLoaded;
+                    tileImages[item.name].src = 'tiles/'  + item.name + '.png';
+                });
+                $.each(otherImages, function(i, item) {
+                    tileImages[item] = new Image();
+                    tileImages[item].onload = tileLoaded;
+                    tileImages[item].src = 'tiles/'  + item + '.png';
+                });
+            }
+            
+            function tileLoaded() {
+                tileCounter++;
+                if (tileCounter == numberOfAllTiles) {
+                    redraw();
+                }
+            }
+            
+            function processAction(json) {
+                //alert('done');
+            }
+            
+            function moveablesClick(e) {
+                showMoveables = true
+                setTimeout(function() { showMoveables = false; }, 5000);
+                var url = '/action/moveables';
+                $.getJSON(url, processAction);
+            }
+            
+            function hintClick(e) {
+                showHint = true
+                setTimeout(function() { showHint = false; }, 1000);
+                var url = '/action/hint';
+                $.getJSON(url, processAction);
+            }
+            
+            function canvasClick (e) {
+                var x = e.pageX - this.offsetLeft;
+                var y = e.pageY - this.offsetTop;
+                console.log("click: ", x, ", ", y);
+                for (var i = tiles.length-1; i >= 0; i--) {
+                    var tx = tiles[i].x * 30 - 5;
+                    var ty = tiles[i].y * 20 - 5 - 5 * tiles[i].z;
+                    if (x > tx && x < (tx + 75) && y > ty && y < (ty + 95)) {
+                        console.log("found!");
+                        console.log("tile: ", tx, ", ", ty);
+                        var url = '/action/select_' + tiles[i].x + '_' + tiles[i].y + '_' + tiles[i].z;
+                        $.getJSON(url, processAction);
+                        return
+                    }
+                }
+            }
+
+        </script>
+    </head>
+    <body onload="loadTiles();">
+        <canvas style="border: 1px solid black" id="field" width="1200" height="720"></canvas><br />
+        <button id="moveableButton" type="button">Show Moveables (+5 Seconds)</button>
+        <button id="hintButton" type="button">Show Hint (+15 Seconds)</button>
+        <script type="text/javascript">
+            $("#moveableButton").click(moveablesClick);
+            $("#hintButton").click(hintClick);
+            $("#field").click(canvasClick);
+        </script>
+    </body>
+</html>

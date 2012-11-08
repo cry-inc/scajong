@@ -1,10 +1,8 @@
 package scajong.model
 
 import scajong.util._
+import scajong.util.FileUtil
 
-import scala.io.Source
-import java.io.File
-import java.io.PrintWriter
 import util.matching.Regex
 import java.io.FileNotFoundException
 
@@ -57,22 +55,18 @@ class Scores(scoreFile:String, publisher:SimplePublisher) {
 	  val lines = for (score <- scores) yield {
 	    score.setup + Scores.separator + score.name + Scores.separator + score.ms + "\n"
 	  }
-	  val writer = new PrintWriter(new File(scoreFile))
-    writer.write(lines.mkString)
-    writer.close()
+	  FileUtil.writeText(scoreFile, lines.mkString)
 	}
 	
 	private def loadScores {
 	  scores = List[ScoreEntry]()
 	  try {
-		  val source = Source.fromFile(scoreFile)
-		  val lines = source.getLines
+		  val lines = FileUtil.readLines(scoreFile)
 		  val regex = new Regex("^(.+)" + Scores.separator + "(.+)" + Scores.separator + "(\\d+)$", "setup", "name", "ms")
 		  lines.foreach(_ match {
 		    case regex(setup, name, ms) => scores = new ScoreEntry(setup, name, ms.toInt) :: scores; 
-	      case _ => println("Unknown line!")
+	      case _ => // Ignore
 		  })
-		  source.close
 	  } catch {
 			case e: FileNotFoundException => // Nothing
 	  }

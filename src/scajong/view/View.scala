@@ -8,5 +8,9 @@ class SetupSelectedNotification(val setupFile:String, val setupName:String) exte
 class HintNotification extends SimpleNotification
 class MoveablesNotification extends SimpleNotification
 class AddScoreNotification(val setup:String, val playerName:String, val ms:Int) extends SimpleNotification
+class CloseViewNotification(val view:View) extends SimpleNotification
 
-trait View extends SimplePublisher
+trait View extends SimplePublisher {
+  def startView {}
+  def stopView {}
+}

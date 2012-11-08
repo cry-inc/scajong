@@ -13,15 +13,18 @@ class SwingController(val game:Game) extends SimpleSubscriber {
       case n: HintNotification => // TODO: add hint penalty to model
       case n: MoveablesNotification => // TODO: add moveables penalty to model
       case n: AddScoreNotification => addScore(n.setup, n.playerName, n.ms)
+      case n: CloseViewNotification => detachView(n.view)
       case _ => // Nothing
     }
   }
 
   def attachView(view:View) {
     view.addSubscriber(this)
+    view.startView
   }
   
   def detachView(view:View) {
+    view.stopView
     view.remSubscriber(this)
   }
   

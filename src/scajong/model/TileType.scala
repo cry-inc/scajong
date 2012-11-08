@@ -1,15 +1,16 @@
 package scajong.model
 
+import scajong.util.FileUtil
+
 object TileType {
   def LoadTileTypes(filePath:String) : Array[TileType] = {
     var list : List[TileType] = Nil
-    val source = io.Source.fromFile(filePath)
-	var id = 0
-    for (line <- source.getLines) {
+    val lines = FileUtil.readLines(filePath)
+    var id = 0
+    for (line <- lines) {
       list = new TileType(id, line) :: list
       id += 1
     }
-    source.close()
     list.toArray
   }  
 }
