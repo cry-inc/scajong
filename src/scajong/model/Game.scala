@@ -23,6 +23,7 @@ class Game(setupsDir:String, tileFile:String, generator:Generator) extends Simpl
   private var currentSetup = new String
   private var startTime : Long = 0
   private var sendTileChangedEvent = true
+  private var penalty = 0
 
   def selected = _selected
   
@@ -37,6 +38,10 @@ class Game(setupsDir:String, tileFile:String, generator:Generator) extends Simpl
   
   def calcTileIndex(x:Int, y:Int, z:Int) : Int = {
     z * width * height + y * width + x
+  }
+  
+  def addPenalty(ms:Int) {
+    if (ms > 0) penalty += ms
   }
   
   def +=(tile:Tile) {
@@ -66,7 +71,7 @@ class Game(setupsDir:String, tileFile:String, generator:Generator) extends Simpl
     for (i <- 0 until Tile.Width; j <- 0 until Tile.Height) yield {
       calcTileIndex(ix - i, iy - j, iz)
     }
-}
+  }
 
   def findTile(x:Float, y:Float, z:Float) : Tile = {
     val indices = possibleTileIndices(x, y, z)
@@ -114,7 +119,7 @@ class Game(setupsDir:String, tileFile:String, generator:Generator) extends Simpl
   	  -=(tile2);
 		  if (tiles.size == 0) {
 		    val elapsed:Int = (System.currentTimeMillis - startTime).toInt
-		   	sendNotification(new WonNotification(currentSetup, elapsed))
+		   	sendNotification(new WonNotification(currentSetup, elapsed + penalty))
 		  } else if (!nextMovePossible)
 			  sendNotification(new NoFurtherMovesNotification)
 		  true
@@ -159,6 +164,7 @@ class Game(setupsDir:String, tileFile:String, generator:Generator) extends Simpl
     generator.generate(this, setupFile)
     sendTileChangedEvent = true
     startTime = 0
+    penalty = 0
     currentSetup = setupName
     sendNotification(new CreatedGameNotification)
   }

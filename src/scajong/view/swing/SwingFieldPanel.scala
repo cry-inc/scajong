@@ -24,14 +24,45 @@ class SwingFieldPanel(val game:Game, name:String) extends Panel with SimpleSubsc
   private var images = Map[String, Image]()
   private var showHint = false
   private var showMoveable = false
+  private val hintTimer = new ScalaTimer(1000, "hint")
+  private val moveablesTimer = new ScalaTimer(5000, "moveables")
   preferredSize = new Dimension(game.width * SwingFieldPanel.CellWidth, 
       game.height * SwingFieldPanel.CellHeight)
   loadImages
+  
   listenTo(mouse.clicks)
+  listenTo(hintTimer)
+  listenTo(moveablesTimer)
   game.addSubscriber(this)
 
   reactions += {
     case e: MouseReleased => mouseReleasedHandler(e)
+    case e: TimerEvent => handleTimers(e.name)
+  }
+  
+  def handleTimers(name:String) {
+		if (name == "hint") {
+      showHint = false
+      hintTimer.stop
+    } else if (name == "moveables") {
+      showMoveable = false
+      moveablesTimer.stop
+    }
+    repaint
+  }
+  
+  def enableMoveables {
+    publish(new MoveablesEvent)
+    moveablesTimer.start
+    showMoveable = true
+    repaint
+  }
+  
+  def enableHint {
+		publish(new HintEvent)
+		hintTimer.start
+		showHint = true
+		repaint
   }
   
   override def processNotifications(sn:SimpleNotification) {
@@ -72,15 +103,9 @@ class SwingFieldPanel(val game:Game, name:String) extends Panel with SimpleSubsc
 	    if (tile != null)
 	      publish(new TileClickedEvent(tile))
     } else if (e.peer.getButton == MouseEvent.BUTTON2) {
-      //publish(new MoveablesEvent)
-      //showMoveable = !showMoveable
-      println("button2: " + showMoveable)
-      repaint
+      enableMoveables
     } else if (e.peer.getButton == MouseEvent.BUTTON3) {
-      //publish(new HintEvent)
-      //showHint = !showHint
-      println("button3: " + showHint)
-      repaint
+    	enableHint
     }
   }
   

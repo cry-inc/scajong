@@ -10,8 +10,8 @@ class SwingController(val game:Game) extends SimpleSubscriber {
     sn match {
       case n: TileClickedNotification => tileClicked(n.tile)
       case n: SetupSelectedNotification => game.startNewGame(n.setupFile, n.setupName)
-      case n: HintNotification => // TODO: add hint penalty to model
-      case n: MoveablesNotification => // TODO: add moveables penalty to model
+      case n: HintNotification => game.addPenalty(15000)
+      case n: MoveablesNotification => game.addPenalty(5000)
       case n: AddScoreNotification => addScore(n.setup, n.playerName, n.ms)
       case n: CloseViewNotification => detachView(n.view)
       case _ => // Nothing

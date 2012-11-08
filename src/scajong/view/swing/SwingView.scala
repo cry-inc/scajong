@@ -30,6 +30,8 @@ class SwingView(game:Game, name:String = "") extends Frame with View with Simple
     case e: AddScoreEvent => sendNotification(new AddScoreNotification(e.setup, e.name, e.ms))
     case e: StartGameEvent => selectPanel(setupSelectPanel)
     case e: ShowScoresEvent => selectPanel(scoreSelectPanel)
+    case e: HintEvent => sendNotification(new HintNotification)
+    case e: MoveablesEvent => sendNotification(new MoveablesNotification)
     case e: WindowClosing => checkForLastFrame
   }
   
@@ -58,10 +60,10 @@ class SwingView(game:Game, name:String = "") extends Frame with View with Simple
      }
      contents += new Menu("Cheats") {
         contents += new MenuItem(Action("Show Moveables (+5 sec)") {
-          swingView.publish(new MoveablesEvent)
+          fieldPanel.enableMoveables
         })
         contents += new MenuItem(Action("Show Hint (+15 sec)") {
-          swingView.publish(new HintEvent)
+          fieldPanel.enableHint
         })
      }
   }
