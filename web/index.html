@@ -6,47 +6,89 @@
         <script src="jquery.js"></script>
         <script type="text/javascript">
 
-            var CellWidth = 30;
-            var CellHeight = 20;
-            var TileOffset = 5;
-            var TileImageWidth = 75;
-            var TileImageHeight = 95;
-            var tileImages = new Array();
-            var tileCounter = 0;
-            var numberOfAllTiles = -1;
+            const CellWidth = 30;
+            const CellHeight = 20;
+            const TileOffset = 5;
+            const TileImageWidth = 75;
+            const TileImageHeight = 95;
+
             var showHint = false;
             var showMoveables = false;
-            var tiles = new Array();
-        
-            function redraw() {
+			var lastId = -1;
+			var tileCounter = 0;
+			var numberOfAllTiles = -1;
+			var tileImages = new Array();
+			var field;
+			var setups;
+			
+			function selectPanel(name) {
+				var panels = new Array('fieldPanel', 'setupsPanel', 'scoresPanel', 'scorePanel');
+				for (var i=0; i<panels.length; i++) {
+					var div = document.getElementById(panels[i]);
+					if (panels[i] == name) {
+						div.style.display = "inline";
+					} else {
+						div.style.display = "none";
+					}
+				}
+			}
+			
+			function checkNotifications() {
+				$.getJSON('/notifications.json', processNotifications);
+			}
+			
+			function processNotifications(json) {
+				$.each(json['notifications'], function(i, item) {
+					if (item.id > lastId) {
+						console.log("not: (", item.id, ", ", item.name, ", ", item.param, ")");
+						switch(item.name) {
+							case 'UpdateField':
+								updateField();
+								selectPanel('fieldPanel');
+								break;
+							case 'ShowScore':
+								// TODO: load score (setup from param)
+								selectPanel('scorePanel');
+								break;
+						}
+						lastId = item.id;
+					}
+                });
+				setTimeout(checkNotifications, 1000);
+			}
+			
+            function updateField() {
                 $.getJSON('/field.json', processFieldData);
             }
             
             function processFieldData(json) {
-                var canvas = document.getElementById('field');
-                canvas.width = json['field']['fieldwidth'] * CellWidth;
-                canvas.height = json['field']['fieldheight'] * CellHeight;
-                canvas = canvas.getContext('2d');
-                canvas.fillStyle = "rgb(255, 255, 255)";
-                canvas.fillRect(0, 0, 1200, 720);
-                tiles = json['field']['tiles'];
-                $.each(tiles, function(i, item) {
-                    drawTile(canvas, item);
-                });
-                setTimeout(redraw, 200);
+                field = json;
+				redraw();
             }
+			
+			function redraw() {
+				var canvas = document.getElementById('field');
+                canvas.width = field['fieldwidth'] * CellWidth;
+                canvas.height = field['fieldheight'] * CellHeight;
+                var context = canvas.getContext('2d');
+                context.fillStyle = "rgb(255, 255, 255)";
+                context.fillRect(0, 0, canvas.width, canvas.height);
+                $.each(field['tiles'], function(i, item) {
+                    drawTile(context, item);
+                });
+			}
             
-            function drawTile(canvas, tile) {
+            function drawTile(context, tile) {
                 var x = tile.x * CellWidth - TileOffset;
                 var y = tile.y * CellHeight - TileOffset - TileOffset * tile.z;
-                canvas.drawImage(tileImages['tile'], x, y);
-                canvas.drawImage(tileImages[tile.type], x, y);
+                context.drawImage(tileImages['tile'], x, y);
+                context.drawImage(tileImages[tile.type], x, y);
                 if (showHint && tile.hint)
-                    canvas.drawImage(tileImages['hint'], x, y);
+                    context.drawImage(tileImages['hint'], x, y);
                 if (showMoveables && !tile.moveable)
-                    canvas.drawImage(tileImages['disabled'], x, y);
+                    context.drawImage(tileImages['disabled'], x, y);
                 if (tile.selected)
-                    canvas.drawImage(tileImages['selected'], x, y);
+                    context.drawImage(tileImages['selected'], x, y);
             }
             
             function loadTiles() {
@@ -77,24 +119,26 @@
             function tileLoaded() {
                 tileCounter++;
                 if (tileCounter == numberOfAllTiles) {
-                    redraw();
+                    checkNotifications();
                 }
             }
             
             function processAction(json) {
-                //alert('done');
+				//alert('done');
             }
             
             function moveablesClick(e) {
                 showMoveables = true
-                setTimeout(function() { showMoveables = false; }, 5000);
+				redraw();
+                setTimeout(function() { showMoveables = false; redraw(); }, 5000);
                 var url = '/action/moveables';
                 $.getJSON(url, processAction);
             }
             
             function hintClick(e) {
                 showHint = true
-                setTimeout(function() { showHint = false; }, 1000);
+				redraw();
+                setTimeout(function() { showHint = false; redraw(); }, 1000);
                 var url = '/action/hint';
                 $.getJSON(url, processAction);
             }
@@ -102,15 +146,14 @@
             function canvasClick (e) {
                 var x = e.pageX - this.offsetLeft;
                 var y = e.pageY - this.offsetTop;
-                console.log("click: ", x, ", ", y);
-                for (var i = tiles.length-1; i >= 0; i--) {
-                    var tx = tiles[i].x * CellWidth - TileOffset;
-                    var ty = tiles[i].y * CellHeight - TileOffset - TileOffset * tiles[i].z;
+                for (var i = field.tiles.length-1; i >= 0; i--) {
+                    var tile = field.tiles[i];
+					var tx = tile.x * CellWidth - TileOffset;
+                    var ty = tile.y * CellHeight - TileOffset - TileOffset * tile.z;
                     if (x > tx && x < (tx + TileImageWidth) && y > ty && y < (ty + TileImageHeight)) {
-                        console.log("found!");
-                        console.log("tile: ", tx, ", ", ty);
-                        var url = '/action/select_' + tiles[i].x + '_' + tiles[i].y + '_' + tiles[i].z;
+                        var url = '/action/select_' + tile.x + '_' + tile.y + '_' + tile.z;
                         $.getJSON(url, processAction);
+						updateTiles();
                         return
                     }
                 }
@@ -123,13 +166,14 @@
             <button id="createGameButton" type="button">Create New Game</button>
             <button id="showScoresButton" type="button">Show Highscores</button>
         </div>
-        <div id="fieldPanel">
+        <div id="fieldPanel" style="display:none">
             <canvas id="field"></canvas><br />
             <button id="moveableButton" type="button">Show Moveables (+5 Seconds)</button>
             <button id="hintButton" type="button">Show Hint (+15 Seconds)</button>
         </div>
-        <div id="setupPanel"></div>
-        <div id="scorePanel"></div>
+        <div id="setupsPanel" style="display:none">SETUPS</div>
+        <div id="scoresPanel" style="display:none">SCORES</div>
+		<div id="scorePanel" style="display:none">SCORE</div>
         <script type="text/javascript">
             $("#moveableButton").click(moveablesClick);
             $("#hintButton").click(hintClick);

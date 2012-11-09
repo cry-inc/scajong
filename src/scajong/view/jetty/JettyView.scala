@@ -11,10 +11,43 @@ import org.eclipse.jetty.server.handler.AbstractHandler
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
-class JettyView(game:Game) extends AbstractHandler with View {
+class JsonNotification(val name:String, val id:Int, val param:String = "") {
+  override def toString = {
+    "        {\n" +
+    "            \"name\": \"" + name + "\",\n" +
+    "            \"id\": " + id + ",\n" +
+    "            \"param\": \"" + param + "\"\n" +
+    "        }"
+  }
+}
+
+class JettyView(game:Game) extends AbstractHandler with View with SimpleSubscriber {
   
-  val server = new Server(8080)
-	server.setHandler(this);
+  private var notificationId = 0
+  private val server = new Server(8080)
+  private var notifications = List[JsonNotification]()
+  
+  server.setHandler(this);
+  game.addSubscriber(this)
+  
+  private def addNotification(name:String, param:String = "") {
+    val notification = new JsonNotification(name, notificationId, param)
+    notificationId += 1
+    notifications = notification :: notifications
+    if (notifications.length > 15)
+      notifications = notifications.take(15)
+  }
+  
+  override def processNotifications(sn:SimpleNotification) {
+    sn match {
+      case n: WonNotification => // TODO
+      case n: NoFurtherMovesNotification => // TODO
+      case n: TilesChangedNotification => addNotification("UpdateField")
+      case n: ScrambledNotification => addNotification("UpdateField")
+      case n: SelectedTileNotification => addNotification("UpdateField")
+      case n: CreatedGameNotification => addNotification("UpdateField")
+    }
+  }
 
 	override def handle(target:String, baseRequest:Request, request:HttpServletRequest, response:HttpServletResponse) {	  
 	  response.setStatus(HttpServletResponse.SC_OK)
@@ -36,6 +69,7 @@ class JettyView(game:Game) extends AbstractHandler with View {
 	      stringData = buildFieldJson
 	    }
 	    case "/notifications.json" => {
+	      // TODO: http://wiki.eclipse.org/Jetty/Feature/Continuations
 	      response.setContentType("application/json")
 	      stringData = buildNotificationsJson
 	    }
@@ -90,17 +124,18 @@ class JettyView(game:Game) extends AbstractHandler with View {
 	}
 	
 	def buildNotificationsJson = {
-	  // TODO
 	  "{\n" +
-	  "    \"notifications\": []"
+	  "    \"notifications\": [\n" +
+	       notifications.reverse.mkString(",\n") + "\n" +
+	  "    ]\n" +
 	  "}\n"
 	}
 	
 	def buildFieldJson = {
 	  val hintPair = game.getHint
 	  val tiles = game.getSortedTiles.reverse
-    var tilesJson = List[String]()
-    tiles.foreach(tile => {
+      var tilesJson = List[String]()
+      tiles.foreach(tile => {
 	    val selected = if (tile == game.selected) "true" else  "false"
 	    val moveable = if (game.canMove(tile)) "true" else "false"
 	    val hint = if (tile == hintPair.tile1 || tile == hintPair.tile2) "true" else "false"
@@ -117,14 +152,12 @@ class JettyView(game:Game) extends AbstractHandler with View {
     })
     
     "{\n" +
-    "   \"field\": {\n" +
-    "       \"fieldwidth\": " + game.width + ",\n" +
-    "       \"fieldheight\": " + game.height + ",\n" +
-    "       \"tilewidth\": " + Tile.Width + ",\n" +
-    "       \"tileheight\": " + Tile.Height + ",\n" +
-    "       \"tiles\": [\n" + tilesJson.mkString(",\n") + "\n" +
-    "       ]\n" +
-    "   }\n" +
+    "    \"fieldwidth\": " + game.width + ",\n" +
+    "    \"fieldheight\": " + game.height + ",\n" +
+    "    \"tilewidth\": " + Tile.Width + ",\n" +
+    "    \"tileheight\": " + Tile.Height + ",\n" +
+    "    \"tiles\": [\n" + tilesJson.mkString(",\n") + "\n" +
+    "    ]\n" +
     "}\n"
 	}
 	
@@ -148,16 +181,16 @@ class JettyView(game:Game) extends AbstractHandler with View {
 	  var setupsJson = List[String]()
 	  game.setups.foreach(setup => {
 	  	setupsJson = "       {\n" +
-    		           "           \"id\": \"" + setup._2 + "\",\n" +
-    		           "           \"name\": \"" + setup._2 + "\"\n" +
-    		           "       }" :: setupsJson
+    	             "           \"id\": \"" + setup._2 + "\",\n" +
+    	             "           \"name\": \"" + setup._2 + "\"\n" +
+    	             "       }" :: setupsJson
 	  })
 	  
-		"{\n" +
-		"   \"setups\": [\n" +
-					setupsJson.mkString(",\n") + "\n" +
-		"   ]\n" +
-		"}\n"
+  	"{\n" +
+  	"   \"setups\": [\n" +
+  	setupsJson.mkString(",\n") + "\n" +
+  	"   ]\n" +
+  	"}\n"
 	}
 	
 	def buildScoresJson(setup:String) = {
@@ -165,9 +198,9 @@ class JettyView(game:Game) extends AbstractHandler with View {
 	  var scoresJson = List[String]()
 	  scores.foreach(score => {
 	  	scoresJson = "       {\n" +
-    		           "           \"ms\": " + score.ms + ",\n" +
-    		           "           \"name\": \"" + score.name + "\"\n" +
-    		           "       }" :: scoresJson
+    	             "           \"ms\": " + score.ms + ",\n" +
+    	             "           \"name\": \"" + score.name + "\"\n" +
+    	             "       }" :: scoresJson
 	  })
 	  
 		"{\n" +
@@ -191,7 +224,6 @@ class JettyView(game:Game) extends AbstractHandler with View {
 	    case "moveables" => sendNotification(new MoveablesNotification)
 	    case _ => // Ignore
 	  }
-	  
 	  "{}"
 	}
 }
