@@ -40,7 +40,7 @@
 			function processNotifications(json) {
 				$.each(json['notifications'], function(i, item) {
 					if (item.id > lastId) {
-						console.log("not: (", item.id, ", ", item.name, ", ", item.param, ")");
+						//console.log("not: (", item.id, ", ", item.name, ", ", item.param, ")");
 						switch(item.name) {
 							case 'UpdateField':
 								updateField();
@@ -143,6 +143,37 @@
                 $.getJSON(url, processAction);
             }
             
+			function predictNewModel(tile) {
+				var oldTileIndex = -1;
+				var newTileIndex = -1;
+				for (var i = 0; i < field.tiles.length; i++) {
+					if (field.tiles[i].selected == true) {
+						oldTileIndex = i;
+						field.tiles[i].selected = false;
+					}
+				}
+				for (var i = 0; i < field.tiles.length; i++) {
+					if (tile.x == field.tiles[i].x && 
+							tile.y == field.tiles[i].y &&
+							tile.z == field.tiles[i].z &&
+						field.tiles[i].moveable == true) {
+						newTileIndex = i;
+						field.tiles[i].selected = true;
+					}
+				}
+				if (oldTileIndex != -1 && newTileIndex != -1 && oldTileIndex != newTileIndex &&
+						field.tiles[oldTileIndex].type == field.tiles[newTileIndex].type) {
+					if (oldTileIndex > newTileIndex) {
+						field.tiles.splice(oldTileIndex, 1);
+						field.tiles.splice(newTileIndex, 1);
+					} else {
+						field.tiles.splice(newTileIndex, 1);
+						field.tiles.splice(oldTileIndex, 1);
+					}
+				}
+				redraw();
+			}
+			
             function canvasClick (e) {
                 var x = e.pageX - this.offsetLeft;
                 var y = e.pageY - this.offsetTop;
@@ -153,8 +184,9 @@
                     if (x > tx && x < (tx + TileImageWidth) && y > ty && y < (ty + TileImageHeight)) {
                         var url = '/action/select_' + tile.x + '_' + tile.y + '_' + tile.z;
                         $.getJSON(url, processAction);
-						updateTiles();
-                        return
+						predictNewModel(tile);
+						updateField();
+                        return;
                     }
                 }
             }
