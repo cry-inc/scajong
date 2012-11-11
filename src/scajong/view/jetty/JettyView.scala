@@ -56,7 +56,7 @@ class JettyView(game:Game) extends AbstractHandler with View with SimpleSubscrib
 	  var binaryData:Array[Byte] = null
 	  
 	  val tileImageRegex = new Regex("^/tiles/([a-z0-9]+)\\.png$", "tile")
-	  val scoreRegex = new Regex("^/scores/([a-z0-9]+\\.json)$", "setup")
+	  val scoreRegex = new Regex("^/scores/([A-Za-z0-9]+\\.json)$", "setup")
 	  val actionRegex = new Regex("^/action/(.+)$", "a")
 	  
 	  target match {
@@ -213,8 +213,8 @@ class JettyView(game:Game) extends AbstractHandler with View with SimpleSubscrib
 	
 	def action(a:String) : String = {
 	  val selectRegex = new Regex("^select_([0-9]+)_([0-9]+)_([0-9]+)$", "x", "y", "z")
-	  val createGameRegex = new Regex("^creategame_([a-z0-9]+)$", "setup")
-	  val addScoreRegex = new Regex("^addscore_([a-z0-9]+)_([0-9]+)_(.+)$", "setup", "ms", "name")
+	  val createGameRegex = new Regex("^creategame_([A-Za-z0-9]+)$", "setup")
+	  val addScoreRegex = new Regex("^addscore_([A-Za-z0-9]+)_([0-9]+)_(.+)$", "setup", "ms", "name")
 	  
 	  a match {
 	    case selectRegex(x, y, z) => val tile = game.findTile(x.toInt, y.toInt, z.toInt); sendNotification(new TileClickedNotification(tile))

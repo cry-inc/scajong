@@ -119,10 +119,19 @@
             function tileLoaded() {
                 tileCounter++;
                 if (tileCounter == numberOfAllTiles) {
-                    checkNotifications();
+                    loadSetups();
                 }
             }
+			
+			function loadSetups() {
+				$.getJSON('/setups.json', processSetupsData);
+			}
             
+			function processSetupsData(json) {
+				setups = json.setups;
+				checkNotifications();
+			}
+			
             function processAction(json) {
 				//alert('done');
             }
@@ -190,6 +199,33 @@
                     }
                 }
             }
+			
+			function loadScore(scoreIndex) {
+				alert('loadScore: ' + scoreIndex);
+			}
+			
+			function loadSetup(setupIndex) { 
+				var url = '/action/creategame_' + setups[setupIndex].id;
+                $.getJSON(url, processAction);
+			}
+			
+			function selectMenu(panelName, functionName) {
+				selectPanel(panelName); 
+				var htmlText = '<ul>';
+				for (var i=0; i< setups.length; i++) {
+					htmlText += '<li><a onclick="' + functionName + '(' + i + ');" href="#">' + setups[i].name + '</a></li>';
+				}
+				htmlText += '</ul>';
+				$('#' + panelName).html(htmlText);
+			} 
+			
+			function selectSetup() {
+				selectMenu('setupsPanel', 'loadSetup');
+			}
+			
+			function selectScore() {
+				selectMenu('scoresPanel', 'loadScore');
+			}
 
         </script>
     </head>
@@ -207,7 +243,9 @@
         <div id="scoresPanel" style="display:none">SCORES</div>
 		<div id="scorePanel" style="display:none">SCORE</div>
         <script type="text/javascript">
-            $("#moveableButton").click(moveablesClick);
+            $("#createGameButton").click(selectSetup);
+			$("#showScoresButton").click(selectScore);
+			$("#moveableButton").click(moveablesClick);
             $("#hintButton").click(hintClick);
             $("#field").click(canvasClick);
         </script>
