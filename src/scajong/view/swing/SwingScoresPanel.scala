@@ -4,11 +4,11 @@ import scajong.model._
 import swing._
 import swing.event._
 
-class AddScoreEvent(val setup:String, val name:String, val ms:Int) extends Event
+class AddScoreEvent(val setup:Setup, val name:String, val ms:Int) extends Event
 
 class SwingScoresPanel(val scores:Scores) extends GridPanel(1, 1) {
 
-  var currentSetup = ""
+  var currentSetup:Setup = null
   var currentTime = 0
   
   reactions += {
@@ -33,13 +33,13 @@ class SwingScoresPanel(val scores:Scores) extends GridPanel(1, 1) {
     contents += new Label("Seconds")
   }
   
-  def addScore(setup:String, ms:Int) {
+  def addScore(setup:Setup, ms:Int) {
     if (scores.isInScoreboard(setup, ms)) {
 	    visible = false
       val scoreList = scores.getScores(setup)
 	    rows = scoreList.length + 3
 	    columns = 3
-	    prepareGrid(setup, scoreList)
+	    prepareGrid(setup.name, scoreList)
 	    val pos = scores.getScorePosition(setup, ms)
 	    val textField = new TextField("Anonymous")
 	    currentSetup = setup
@@ -63,12 +63,12 @@ class SwingScoresPanel(val scores:Scores) extends GridPanel(1, 1) {
     } else showScores(setup)
   }
   
-  def showScores(setup:String) {
+  def showScores(setup:Setup) {
     visible = false
     val scoreList = scores.getScores(setup)
     rows = scoreList.length + 2
     columns = 3
-    prepareGrid(setup, scoreList)
+    prepareGrid(setup.name, scoreList)
 	  for (i <- 0 until scoreList.length) {
 	    contents += new Label((i+1).toString)
 	    contents += new Label(scoreList(i).name)

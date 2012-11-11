@@ -46,6 +46,7 @@ class JettyView(game:Game) extends AbstractHandler with View with SimpleSubscrib
       case n: ScrambledNotification => addNotification("UpdateField")
       case n: SelectedTileNotification => addNotification("UpdateField")
       case n: CreatedGameNotification => addNotification("UpdateField")
+      case _ => // Nothing
     }
   }
 
@@ -56,7 +57,7 @@ class JettyView(game:Game) extends AbstractHandler with View with SimpleSubscrib
 	  var binaryData:Array[Byte] = null
 	  
 	  val tileImageRegex = new Regex("^/tiles/([a-z0-9]+)\\.png$", "tile")
-	  val scoreRegex = new Regex("^/scores/([A-Za-z0-9]+\\.json)$", "setup")
+	  val scoreRegex = new Regex("^/scores/([A-Za-z0-9]+\\.json)$", "setupId")
 	  val actionRegex = new Regex("^/action/(.+)$", "a")
 	  
 	  target match {
@@ -93,8 +94,10 @@ class JettyView(game:Game) extends AbstractHandler with View with SimpleSubscrib
 	        stringData = "File not found!"
 	      }
 	    }
-	    case scoreRegex(setup) => {
+	    case scoreRegex(setupId) => {
 	      response.setContentType("application/json")
+	      val setup:Setup = null
+	      // TODO: find by id
 	      stringData = buildScoresJson(setup)
 	    }
 	    case actionRegex(a) => {
@@ -181,8 +184,8 @@ class JettyView(game:Game) extends AbstractHandler with View with SimpleSubscrib
 	  var setupsJson = List[String]()
 	  game.setups.foreach(setup => {
 	  	setupsJson = "       {\n" +
-    	             "           \"id\": \"" + setup._2 + "\",\n" +
-    	             "           \"name\": \"" + setup._2 + "\"\n" +
+    	             "           \"id\": \"" + setup.id + "\",\n" +
+    	             "           \"name\": \"" + setup.name + "\"\n" +
     	             "       }" :: setupsJson
 	  })
 	  
@@ -193,7 +196,7 @@ class JettyView(game:Game) extends AbstractHandler with View with SimpleSubscrib
   	"}\n"
 	}
 	
-	def buildScoresJson(setup:String) = {
+	def buildScoresJson(setup:Setup) = {
 	  val scores = game.scores.getScores(setup)
 	  var scoresJson = List[String]()
 	  scores.foreach(score => {
@@ -218,8 +221,8 @@ class JettyView(game:Game) extends AbstractHandler with View with SimpleSubscrib
 	  
 	  a match {
 	    case selectRegex(x, y, z) => val tile = game.findTile(x.toInt, y.toInt, z.toInt); sendNotification(new TileClickedNotification(tile))
-	    case createGameRegex(setup) => sendNotification(new SetupSelectedNotification(setup, "TODO"))
-	    case addScoreRegex(setup, ms, name) => sendNotification(new AddScoreNotification(setup, name, ms.toInt))
+	    case createGameRegex(setup) => val s:Setup = null; /*TODO: find setup! */ sendNotification(new SetupSelectedNotification(s))
+	    case addScoreRegex(setup, ms, name) => val s:Setup = null;  /*TODO: find setup! */ sendNotification(new AddScoreNotification(s, name, ms.toInt))
 	    case "hint" => sendNotification(new HintNotification)
 	    case "moveables" => sendNotification(new MoveablesNotification)
 	    case _ => // Ignore

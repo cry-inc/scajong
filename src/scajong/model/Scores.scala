@@ -6,9 +6,9 @@ import scajong.util.FileUtil
 import util.matching.Regex
 import java.io.FileNotFoundException
 
-class ScoreEntry(val setup:String, val name:String, val ms:Int) {
+class ScoreEntry(val setupId:String, val name:String, val ms:Int) {
   override def toString = {
-    "[Setup:" + setup + ",Name:" + name + ",ms:" + ms + "]"
+    "[Setup:" + setupId + ",Name:" + name + ",ms:" + ms + "]"
   }
 }
 
@@ -17,7 +17,7 @@ object Scores {
   val separator = "####"
 }
 
-class NewScoreBoardEntryNotification(val setup:String) extends SimpleNotification
+class NewScoreBoardEntryNotification(val setup:Setup) extends SimpleNotification
 
 class Scores(scoreFile:String, publisher:SimplePublisher) {
 
@@ -25,27 +25,25 @@ class Scores(scoreFile:String, publisher:SimplePublisher) {
   
   loadScores
 	
-	def isInScoreboard(setup:String, ms:Int) = getScores(setup).filter(_.ms < ms).size < Scores.perSetupEntries
+	def isInScoreboard(setup:Setup, ms:Int) = getScores(setup).filter(_.ms < ms).size < Scores.perSetupEntries
 	
 	implicit val scoreOrdering = Ordering.by((s: ScoreEntry) => s.ms)
 	
-	def getScores(setup:String) = {
-    val sorted = scores.filter(_.setup == setup).sorted
+	def getScores(setup:Setup) = {
+    val sorted = scores.filter(_.setupId == setup.id).sorted
     sorted.take(10)
   }
 	
-	def countScores(setup:String) = getScores(setup).length
-	
-	def getScorePosition(setup:String, ms:Int) = {
+	def getScorePosition(setup:Setup, ms:Int) = {
 	  if (!isInScoreboard(setup, ms))
 	    -1
     else
-    	scores.count(e => e.setup == setup && e.ms < ms)
+    	scores.count(e => e.setupId == setup.id && e.ms < ms)
 	}
 	
-	def addScore(setup:String, name:String, ms:Int) {
+	def addScore(setup:Setup, name:String, ms:Int) {
 	  if (isInScoreboard(setup, ms)) {
-	    scores = new ScoreEntry(setup, name, ms) :: scores
+	    scores = new ScoreEntry(setup.id, name, ms) :: scores
 	    saveScores
 	    publisher.sendNotification(new NewScoreBoardEntryNotification(setup))
 	  }
@@ -53,7 +51,7 @@ class Scores(scoreFile:String, publisher:SimplePublisher) {
 	
 	private def saveScores {
 	  val lines = for (score <- scores) yield {
-	    score.setup + Scores.separator + score.name + Scores.separator + score.ms + "\n"
+	    score.setupId + Scores.separator + score.name + Scores.separator + score.ms + "\n"
 	  }
 	  FileUtil.writeText(scoreFile, lines.mkString)
 	}
@@ -62,9 +60,9 @@ class Scores(scoreFile:String, publisher:SimplePublisher) {
 	  scores = List[ScoreEntry]()
 	  try {
 		  val lines = FileUtil.readLines(scoreFile)
-		  val regex = new Regex("^(.+)" + Scores.separator + "(.+)" + Scores.separator + "(\\d+)$", "setup", "name", "ms")
+		  val regex = new Regex("^(.+)" + Scores.separator + "(.+)" + Scores.separator + "(\\d+)$", "setupId", "name", "ms")
 		  lines.foreach(_ match {
-		    case regex(setup, name, ms) => scores = new ScoreEntry(setup, name, ms.toInt) :: scores; 
+		    case regex(setupId, name, ms) => scores = new ScoreEntry(setupId, name, ms.toInt) :: scores; 
 	      case _ => // Ignore
 		  })
 	  } catch {

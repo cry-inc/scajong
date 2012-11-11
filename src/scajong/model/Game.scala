@@ -5,12 +5,14 @@ import io.Source
 import java.io.File
 import java.sql.Date
 
-class WonNotification(val setup:String, val ms:Int) extends SimpleNotification
+class WonNotification(val setup:Setup, val ms:Int) extends SimpleNotification
 class NoFurtherMovesNotification extends SimpleNotification
 class TilesChangedNotification extends SimpleNotification
 class ScrambledNotification extends SimpleNotification
 class SelectedTileNotification(val tile:Tile) extends SimpleNotification
 class CreatedGameNotification extends SimpleNotification
+
+class Setup(val id:String, val name:String, val path:String)
 
 class Game(setupsDir:String, tileFile:String, generator:Generator) extends SimplePublisher {
   var width = 40
@@ -20,7 +22,7 @@ class Game(setupsDir:String, tileFile:String, generator:Generator) extends Simpl
   val setups = listSetups
   val scores = new Scores("scores.txt", this)
   private var _selected:Tile = null
-  private var currentSetup = new String
+  private var currentSetup:Setup = null
   private var startTime : Long = 0
   private var sendTileChangedEvent = true
   private var penalty = 0
@@ -138,18 +140,18 @@ class Game(setupsDir:String, tileFile:String, generator:Generator) extends Simpl
   
   def nextMovePossible : Boolean = getHint != null
   
-  private def getSetupName(setupFile:String) = {
+  private def getSetup(setupFile:String) = {
     val source = io.Source.fromFile(setupFile)
     val lines = source.getLines.map(f => f).toList
     source.close
-    lines(0)
+    new Setup(lines(0), lines(1), setupFile)
   }
   
   private def listSetups = {
     val fileArray = new File(setupsDir).listFiles
     val fileNames = fileArray.map(f => f.getPath)
     val filtered = fileNames.filter(_.endsWith(".txt"))
-    filtered.map(f => (f, getSetupName(f))).toMap
+    filtered.map(getSetup(_)).toList
   }
   
   def scramble {
@@ -159,13 +161,13 @@ class Game(setupsDir:String, tileFile:String, generator:Generator) extends Simpl
     sendNotification(new ScrambledNotification)
   }
   
-  def startNewGame(setupFile:String, setupName:String) {
+  def startNewGame(setup:Setup) {
     sendTileChangedEvent = false
-    generator.generate(this, setupFile)
+    generator.generate(this, setup.path)
     sendTileChangedEvent = true
     startTime = 0
     penalty = 0
-    currentSetup = setupName
+    currentSetup = setup
     sendNotification(new CreatedGameNotification)
   }
 }

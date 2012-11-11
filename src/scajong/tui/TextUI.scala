@@ -6,7 +6,7 @@ import util.matching.Regex
 object TextUI {
   def main(args: Array[String]) {
     val game = new Game("setups/", "tiles.txt", new ReverseGenerator)
-    game.startNewGame("setups/camel.txt", "Camel")
+    game.startNewGame(game.setups(0))
     new TextUI(game)
   }
 }

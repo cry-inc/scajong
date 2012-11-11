@@ -25,8 +25,8 @@ class SwingView(game:Game, name:String = "") extends Frame with View with Simple
   
   reactions += {
     case e: TileClickedEvent => sendNotification(new TileClickedNotification(e.tile))
-    case e: SetupSelectedEvent => sendNotification(new SetupSelectedNotification(e.setupFile, e.setupName))
-    case e: ScoreSelectedEvent => scorePanel.showScores(e.setupName); selectPanel(scorePanel)
+    case e: SetupSelectedEvent => sendNotification(new SetupSelectedNotification(e.setup))
+    case e: ScoreSelectedEvent => scorePanel.showScores(e.setup); selectPanel(scorePanel)
     case e: AddScoreEvent => sendNotification(new AddScoreNotification(e.setup, e.name, e.ms))
     case e: StartGameEvent => selectPanel(setupSelectPanel)
     case e: ShowScoresEvent => selectPanel(scoreSelectPanel)
@@ -89,7 +89,7 @@ class SwingView(game:Game, name:String = "") extends Frame with View with Simple
     visible = true
   }
   
-  def won(setup:String, ms:Int) {
+  def won(setup:Setup, ms:Int) {
     if (game.scores.isInScoreboard(setup, ms)) {
       scorePanel.addScore(setup, ms)
     } else {

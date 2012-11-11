@@ -9,7 +9,7 @@ class SwingController(val game:Game) extends SimpleSubscriber {
   override def processNotifications(sn:SimpleNotification) {
     sn match {
       case n: TileClickedNotification => tileClicked(n.tile)
-      case n: SetupSelectedNotification => game.startNewGame(n.setupFile, n.setupName)
+      case n: SetupSelectedNotification => game.startNewGame(n.setup)
       case n: HintNotification => game.addPenalty(15000)
       case n: MoveablesNotification => game.addPenalty(5000)
       case n: AddScoreNotification => addScore(n.setup, n.playerName, n.ms)
@@ -39,7 +39,7 @@ class SwingController(val game:Game) extends SimpleSubscriber {
     }
   }
   
-  def addScore(setup:String, playerName:String, ms:Int) {
+  def addScore(setup:Setup, playerName:String, ms:Int) {
     game.scores.addScore(setup, playerName, ms)
   }
 }
