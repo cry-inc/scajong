@@ -17,7 +17,7 @@ object Scores {
   val separator = "####"
 }
 
-class NewScoreBoardEntryNotification(val setup:Setup) extends SimpleNotification
+class NewScoreBoardEntryNotification(val setup:Setup, val position:Int) extends SimpleNotification
 
 class Scores(scoreFile:String, publisher:SimplePublisher) {
 
@@ -43,9 +43,10 @@ class Scores(scoreFile:String, publisher:SimplePublisher) {
 	
 	def addScore(setup:Setup, name:String, ms:Int) {
 	  if (isInScoreboard(setup, ms)) {
+	    val position = getScorePosition(setup, ms)
 	    scores = new ScoreEntry(setup.id, name, ms) :: scores
 	    saveScores
-	    publisher.sendNotification(new NewScoreBoardEntryNotification(setup))
+	    publisher.sendNotification(new NewScoreBoardEntryNotification(setup, position))
 	  }
 	}
 	

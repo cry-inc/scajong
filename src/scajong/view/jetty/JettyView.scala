@@ -9,12 +9,13 @@ import org.eclipse.jetty.server.handler.AbstractHandler
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
-class JsonNotification(val name:String, val id:Int, val param:String = "") {
+class JsonNotification(val name:String, val id:Int, val param1:String = "", val param2:String = "") {
   override def toString = {
     "        {\n" +
     "            \"name\": \"" + name + "\",\n" +
     "            \"id\": " + id + ",\n" +
-    "            \"param\": \"" + param + "\"\n" +
+    "            \"param1\": \"" + param1 + "\",\n" +
+    "						 \"param2\": \"" + param2 + "\"\n" +
     "        }"
   }
 }
@@ -29,8 +30,8 @@ class JettyView(game:Game) extends AbstractHandler with View with SimpleSubscrib
   server.setHandler(this);
   game.addSubscriber(this)
   
-  private def addNotification(name:String, param:String = "") {
-    val notification = new JsonNotification(name, notificationId, param)
+  private def addNotification(name:String, param1:String = "", param2:String = "") {
+    val notification = new JsonNotification(name, notificationId, param1, param2)
     notificationId += 1
     notifications = notification :: notifications
     if (notifications.length > 15)
@@ -50,7 +51,7 @@ class JettyView(game:Game) extends AbstractHandler with View with SimpleSubscrib
       case n:ScrambledNotification => addNotification("UpdateField")
       case n:SelectedTileNotification => addNotification("UpdateField")
       case n:CreatedGameNotification => addNotification("NewGame")
-      case n:NewScoreBoardEntryNotification => addNotification("ShowScore", n.setup.id)
+      case n:NewScoreBoardEntryNotification => addNotification("ShowScore", n.setup.id, n.position.toString)
       case _ => // Nothing
     }
   }
