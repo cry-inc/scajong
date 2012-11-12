@@ -70,6 +70,7 @@ class SwingFieldPanel(val game:Game, name:String) extends Panel with SimpleSubsc
       case n:TilesChangedNotification => repaint
       case n:SelectedTileNotification => repaint
       case n:CreatedGameNotification => repaint
+      case n:NoFurtherMovesNotification => // TODO: As for scramble
       case _ => // Nothing
     }
   }

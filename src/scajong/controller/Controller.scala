@@ -14,6 +14,7 @@ class SwingController(val game:Game) extends SimpleSubscriber {
       case n: MoveablesNotification => game.addPenalty(5000)
       case n: AddScoreNotification => addScore(n.setup, n.playerName, n.ms)
       case n: CloseViewNotification => detachView(n.view)
+      case n: DoScrambleNotification => game.scramble
       case _ => // Nothing
     }
   }

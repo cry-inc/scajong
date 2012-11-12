@@ -5,7 +5,7 @@ import io.Source
 import java.io.File
 import java.sql.Date
 
-class WonNotification(val setup:Setup, val ms:Int) extends SimpleNotification
+class WonNotification(val setup:Setup, val ms:Int, val inScoreBoard:Boolean) extends SimpleNotification
 class NoFurtherMovesNotification extends SimpleNotification
 class TilesChangedNotification extends SimpleNotification
 class ScrambledNotification extends SimpleNotification
@@ -120,8 +120,9 @@ class Game(setupsDir:String, tileFile:String, generator:Generator) extends Simpl
   	  -=(tile1)
   	  -=(tile2);
 		  if (tiles.size == 0) {
-		    val elapsed:Int = (System.currentTimeMillis - startTime).toInt
-		   	sendNotification(new WonNotification(currentSetup, elapsed + penalty))
+		    val time = (System.currentTimeMillis - startTime).toInt + penalty
+		    val inScoreBoard = scores.isInScoreboard(currentSetup, time)
+		   	sendNotification(new WonNotification(currentSetup, time, inScoreBoard))
 		  } else if (!nextMovePossible)
 			  sendNotification(new NoFurtherMovesNotification)
 		  true
@@ -152,6 +153,14 @@ class Game(setupsDir:String, tileFile:String, generator:Generator) extends Simpl
     val fileNames = fileArray.map(f => f.getPath)
     val filtered = fileNames.filter(_.endsWith(".txt"))
     filtered.map(getSetup(_)).toList
+  }
+  
+  def setupById(setupId:String) = {
+    val filtered = setups.filter(_.id == setupId)
+    if (filtered.length == 1)
+      filtered(0)
+    else
+      null
   }
   
   def scramble {

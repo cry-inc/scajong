@@ -3,9 +3,7 @@ package scajong.view.jetty
 import scajong.model._
 import scajong.view._
 import scajong.util._
-
 import util.matching.Regex
-
 import org.eclipse.jetty.server._
 import org.eclipse.jetty.server.handler.AbstractHandler
 import javax.servlet.http.HttpServletRequest
@@ -26,6 +24,7 @@ class JettyView(game:Game) extends AbstractHandler with View with SimpleSubscrib
   private var notificationId = 0
   private val server = new Server(8080)
   private var notifications = List[JsonNotification]()
+  private var addScoreNotification:WonNotification = null
   
   server.setHandler(this);
   game.addSubscriber(this)
@@ -40,12 +39,18 @@ class JettyView(game:Game) extends AbstractHandler with View with SimpleSubscrib
   
   override def processNotifications(sn:SimpleNotification) {
     sn match {
-      case n: WonNotification => // TODO
-      case n: NoFurtherMovesNotification => // TODO
-      case n: TilesChangedNotification => addNotification("UpdateField")
-      case n: ScrambledNotification => addNotification("UpdateField")
-      case n: SelectedTileNotification => addNotification("UpdateField")
-      case n: CreatedGameNotification => addNotification("UpdateField")
+      case n: WonNotification => {
+        if (n.inScoreBoard) {
+          addScoreNotification = n
+          addNotification("AddScore")
+        } else addNotification("ShowScore", n.setup.id)
+      }
+      case n:NoFurtherMovesNotification => addNotification("NoFurtherMoves")
+      case n:TilesChangedNotification => addNotification("UpdateField")
+      case n:ScrambledNotification => addNotification("UpdateField")
+      case n:SelectedTileNotification => addNotification("UpdateField")
+      case n:CreatedGameNotification => addNotification("NewGame")
+      case n:NewScoreBoardEntryNotification => addNotification("ShowScore", n.setup.id)
       case _ => // Nothing
     }
   }
@@ -57,7 +62,8 @@ class JettyView(game:Game) extends AbstractHandler with View with SimpleSubscrib
 	  var binaryData:Array[Byte] = null
 	  
 	  val tileImageRegex = new Regex("^/tiles/([a-z0-9]+)\\.png$", "tile")
-	  val scoreRegex = new Regex("^/scores/([A-Za-z0-9]+\\.json)$", "setupId")
+	  val scoreRegex = new Regex("^/scores/([A-Za-z0-9]+)\\.json$", "setupId")
+	  val setupImageRegex = new Regex("^/setups/([A-Za-z0-9]+)\\.png$", "setupId")
 	  val actionRegex = new Regex("^/action/(.+)$", "a")
 	  
 	  target match {
@@ -94,11 +100,22 @@ class JettyView(game:Game) extends AbstractHandler with View with SimpleSubscrib
 	        stringData = "File not found!"
 	      }
 	    }
+	    case setupImageRegex(setupId) => {
+	    	val fn = "setups/" + setupId + ".png"
+	      if (FileUtil.exists(fn)) {
+      		binary = true
+		      response.setContentType("image/png")
+		      binaryData = FileUtil.readBytes(fn)
+	      } else {
+	        response.setStatus(HttpServletResponse.SC_NOT_FOUND)
+	        response.setContentType("text/html;charset=utf-8")
+	        stringData = "File not found!"
+	      }
+	    }
 	    case scoreRegex(setupId) => {
 	      response.setContentType("application/json")
-	      val setup:Setup = null
-	      // TODO: find by id
-	      stringData = buildScoresJson(setup)
+	      val setup = game.setupById(setupId)
+	      stringData = if (setup != null) buildScoresJson(setup) else "{}"
 	    }
 	    case actionRegex(a) => {
     		response.setContentType("application/json")
@@ -197,35 +214,59 @@ class JettyView(game:Game) extends AbstractHandler with View with SimpleSubscrib
 	}
 	
 	def buildScoresJson(setup:Setup) = {
-	  val scores = game.scores.getScores(setup)
+	  val scores = game.scores.getScores(setup).reverse
 	  var scoresJson = List[String]()
 	  scores.foreach(score => {
 	  	scoresJson = "       {\n" +
     	             "           \"ms\": " + score.ms + ",\n" +
-    	             "           \"name\": \"" + score.name + "\"\n" +
+    	             "           \"name\": \"" + escapeHtml(score.name) + "\"\n" +
     	             "       }" :: scoresJson
 	  })
 	  
 		"{\n" +
-		"   \"setup\": \"" + setup + "\",\n" +
+		"   \"id\": \"" + setup.id + "\",\n" +
+		"   \"name\": \"" + setup.name + "\",\n" +
 		"   \"scores\": [\n" +
 					scoresJson.mkString(",\n") + "\n" +
 		"   ]\n" +
 		"}\n"
 	}
 	
+	def escapeHtml(html:String) = {
+	  var escaped = html
+	  escaped = escaped.replace("&", "&amp;")
+	  escaped = escaped.replace("\"", "&quot;")
+	  escaped = escaped.replace("<", "&lt;")
+	  escaped = escaped.replace(">", "&gt;")
+	  escaped = escaped.replace("'", "&apos;")
+	  escaped
+	}
+	
 	def action(a:String) : String = {
 	  val selectRegex = new Regex("^select_([0-9]+)_([0-9]+)_([0-9]+)$", "x", "y", "z")
-	  val createGameRegex = new Regex("^creategame_([A-Za-z0-9]+)$", "setup")
-	  val addScoreRegex = new Regex("^addscore_([A-Za-z0-9]+)_([0-9]+)_(.+)$", "setup", "ms", "name")
+	  val createGameRegex = new Regex("^creategame_([A-Za-z0-9]+)$", "setupId")
+	  val addScoreRegex = new Regex("^addscore_(.+)$", "name")
 	  
 	  a match {
-	    case selectRegex(x, y, z) => val tile = game.findTile(x.toInt, y.toInt, z.toInt); sendNotification(new TileClickedNotification(tile))
-	    case createGameRegex(setup) => val s:Setup = null; /*TODO: find setup! */ sendNotification(new SetupSelectedNotification(s))
-	    case addScoreRegex(setup, ms, name) => val s:Setup = null;  /*TODO: find setup! */ sendNotification(new AddScoreNotification(s, name, ms.toInt))
+	    case "scramble" => sendNotification(new DoScrambleNotification)
+	    case selectRegex(x, y, z) => {
+	      val tile = game.findTile(x.toInt, y.toInt, z.toInt)
+	      sendNotification(new TileClickedNotification(tile))
+	    }
+	    case createGameRegex(setupId) => {
+	      val setup = game.setupById(setupId)
+	      if (setup != null)
+	      	sendNotification(new SetupSelectedNotification(setup))
+	    }
+	    case addScoreRegex(name) => {
+	      if (addScoreNotification != null) {
+	        sendNotification(new AddScoreNotification(addScoreNotification.setup, name, addScoreNotification.ms))
+	        addScoreNotification = null
+	      }
+	    }
 	    case "hint" => sendNotification(new HintNotification)
 	    case "moveables" => sendNotification(new MoveablesNotification)
-	    case _ => // Ignore
+	    case _ => // Nothing
 	  }
 	  "{}"
 	}

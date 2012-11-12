@@ -22,7 +22,7 @@
 			var setups;
 			
 			function selectPanel(name) {
-				var panels = new Array('fieldPanel', 'setupsPanel', 'scoresPanel', 'scorePanel');
+				var panels = new Array('fieldPanel', 'setupsPanel', 'scoresPanel', 'scorePanel', 'addScore');
 				for (var i=0; i<panels.length; i++) {
 					var div = document.getElementById(panels[i]);
 					if (panels[i] == name) {
@@ -42,14 +42,24 @@
 					if (item.id > lastId) {
 						//console.log("not: (", item.id, ", ", item.name, ", ", item.param, ")");
 						switch(item.name) {
-							case 'UpdateField':
+							case 'NewGame':
+                                selectPanel('fieldPanel');
+                                updateField();
+								break;
+                            case 'UpdateField':
 								updateField();
-								selectPanel('fieldPanel');
 								break;
 							case 'ShowScore':
-								// TODO: load score (setup from param)
 								selectPanel('scorePanel');
+                                loadScores(item.param);
 								break;
+                            case 'AddScore':
+                                selectPanel('addScore');
+                                break;
+                            case 'NoFurtherMoves':
+                                var result = confirm('No further moves possible. Scramble?');
+                                if (result == true) $.getJSON('/action/scramble', processAction);
+                                break;
 						}
 						lastId = item.id;
 					}
@@ -132,6 +142,24 @@
 				checkNotifications();
 			}
 			
+            function loadScores(setup) {
+                $.getJSON('/scores/' + setup + '.json', processScoresData);
+			}
+            
+            function processScoresData(json) {
+                var htmlText = '<table class="scoretable"><tr><th colspan="2">' + json.name + '</th></tr>';
+                var pos = 1;
+                htmlText += '<tr><th>Position</th><th>Name</th><th>Time</th></tr>'
+                $.each(json['scores'], function(i, item) {
+                    htmlText += '<tr><td>' + pos + '</td>';
+                    htmlText += '<td>' + item.name + '</td>';
+                    htmlText += '<td>' + (item.ms/1000) + ' sec</td></tr>';
+                    pos++;
+                });
+                htmlText += '</table>';
+                $('#scorePanel').html(htmlText);
+            }
+            
             function processAction(json) {
 				//alert('done');
             }
@@ -201,7 +229,8 @@
             }
 			
 			function loadScore(scoreIndex) {
-				alert('loadScore: ' + scoreIndex);
+                selectPanel('scorePanel');
+                loadScores(setups[scoreIndex].id);
 			}
 			
 			function loadSetup(setupIndex) { 
@@ -211,9 +240,10 @@
 			
 			function selectMenu(panelName, functionName) {
 				selectPanel(panelName); 
-				var htmlText = '<ul>';
+				var htmlText = '<ul class="setupList">';
 				for (var i=0; i< setups.length; i++) {
-					htmlText += '<li><a onclick="' + functionName + '(' + i + ');" href="#">' + setups[i].name + '</a></li>';
+					htmlText += '<li><a onclick="' + functionName + '(' + i + ');" href="#">';
+                    htmlText += '<img src="setups/' + setups[i].id + '.png" />' + setups[i].name + '</a></li>';
 				}
 				htmlText += '</ul>';
 				$('#' + panelName).html(htmlText);
@@ -226,6 +256,12 @@
 			function selectScore() {
 				selectMenu('scoresPanel', 'loadScore');
 			}
+            
+            function sendScoreName() {
+                var name = $("#nameInput").val();
+                var url = '/action/addscore_' + name;
+                $.getJSON(url, processAction);
+            }
 
         </script>
     </head>
@@ -242,12 +278,17 @@
         <div id="setupsPanel" style="display:none">SETUPS</div>
         <div id="scoresPanel" style="display:none">SCORES</div>
 		<div id="scorePanel" style="display:none">SCORE</div>
+        <div id="addScore" style="display:none">
+            <input type="text" id="nameInput" value="Anon" />
+            <button id="addScoreButton" type="button">Send</button>
+        </div>
         <script type="text/javascript">
             $("#createGameButton").click(selectSetup);
 			$("#showScoresButton").click(selectScore);
 			$("#moveableButton").click(moveablesClick);
             $("#hintButton").click(hintClick);
             $("#field").click(canvasClick);
+            $("#addScoreButton").click(sendScoreName);
         </script>
     </body>
 </html>
