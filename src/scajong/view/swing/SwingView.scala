@@ -38,7 +38,7 @@ class SwingView(game:Game, name:String = "") extends Frame with View with Simple
   override def processNotifications(sn:SimpleNotification) {
     sn match {
     	case n: WonNotification => won(n.setup, n.ms)
-    	case n: CreatedGameNotification => selectPanel(fieldPanel)
+    	case n: CreatedGameNotification => fieldPanel.updateSize; selectPanel(fieldPanel); pack
     	case n: NewScoreBoardEntryNotification => scorePanel.showScores(n.setup); selectPanel(scorePanel)
       case _ => // Nothing
     }
@@ -84,7 +84,7 @@ class SwingView(game:Game, name:String = "") extends Frame with View with Simple
   
   def selectPanel(panel:Panel) {
     visible = false
-    minimumSize = new Dimension(800, 600)
+    minimumSize = new Dimension(640, 480)
     contents = panel
     visible = true
   }

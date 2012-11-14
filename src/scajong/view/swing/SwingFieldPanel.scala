@@ -26,8 +26,7 @@ class SwingFieldPanel(val game:Game, name:String) extends Panel with SimpleSubsc
   private var showMoveable = false
   private val hintTimer = new ScalaTimer(1000, "hint")
   private val moveablesTimer = new ScalaTimer(5000, "moveables")
-  preferredSize = new Dimension(game.width * SwingFieldPanel.CellWidth, 
-      game.height * SwingFieldPanel.CellHeight)
+  updateSize
   loadImages
   
   listenTo(mouse.clicks)
@@ -38,6 +37,12 @@ class SwingFieldPanel(val game:Game, name:String) extends Panel with SimpleSubsc
   reactions += {
     case e: MouseReleased => mouseReleasedHandler(e)
     case e: TimerEvent => handleTimers(e.name)
+  }
+  
+  def updateSize {
+    preferredSize = new Dimension(
+      game.width * SwingFieldPanel.CellWidth, 
+      game.height * SwingFieldPanel.CellHeight)
   }
   
   def handleTimers(name:String) {
@@ -70,7 +75,7 @@ class SwingFieldPanel(val game:Game, name:String) extends Panel with SimpleSubsc
       case n:TilesChangedNotification => repaint
       case n:SelectedTileNotification => repaint
       case n:CreatedGameNotification => repaint
-      case n:NoFurtherMovesNotification => // TODO: As for scramble
+      case n:NoFurtherMovesNotification => // TODO: Ask for scramble
       case _ => // Nothing
     }
   }
