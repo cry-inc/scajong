@@ -25,7 +25,7 @@ object FileUtil {
 	  var lines = List[String]()
 		source.getLines.foreach(l => lines = l :: lines)
 		source.close
-		lines
+		lines.reverse
 	}
 	
 	def readBytes(file:String) : Array[Byte] = {
