@@ -3,7 +3,8 @@ package scajong.model
 import org.specs2.mutable._
 
 class TileTypeSpec extends SpecificationWithJUnit {
-	"A TileType" should {
+	
+  "A TileType" should {
 		val tileType = new TileType(23, "t42")
 	  
 	  "have a id" in {
