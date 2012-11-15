@@ -6,7 +6,7 @@ object Tile {
   val Depth = 1
 }
 
-class Point(val x:Int, val y:Int)
+class Point(val x:Int, val y:Int, val z:Int)
 
 class TilePair(val tile1:Tile, val tile2:Tile)
 
@@ -21,10 +21,10 @@ class Tile(val x:Int, val y:Int, val z:Int, var tileType:TileType) {
   }
 
   def testPoints : Array[Point] = {
-    var array : Array[Point] = new Array(Tile.Width * Tile.Height)
+    var array : Array[Point] = new Array(Tile.Width * Tile.Height * Tile.Depth)
     var p = 0
-    for (xp <- 0 until Tile.Width; yp <- 0 until Tile.Height) {
-      array(p) = new Point(x + xp, y + yp);
+    for (xp <- 0 until Tile.Width; yp <- 0 until Tile.Height; zp <- 0 until Tile.Depth) {
+      array(p) = new Point(x + xp, y + yp, z + zp);
       p += 1
     }
     array

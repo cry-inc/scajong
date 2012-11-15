@@ -2,8 +2,6 @@ package scajong.model
 
 import scajong.util._
 import io.Source
-import java.io.File
-import java.sql.Date
 
 class WonNotification(val setup:Setup, val ms:Int, val inScoreBoard:Boolean) extends SimpleNotification
 class NoFurtherMovesNotification extends SimpleNotification
@@ -12,14 +10,12 @@ class ScrambledNotification extends SimpleNotification
 class SelectedTileNotification(val tile:Tile) extends SimpleNotification
 class CreatedGameNotification extends SimpleNotification
 
-class Setup(val id:String, val name:String, val path:String)
-
 class Game(setupsDir:String, tileFile:String, generator:Generator) extends SimplePublisher {
   var width = 40
   var height = 26
   var tiles = Map[Int, Tile]()
   val tileTypes = TileType.LoadTileTypes(tileFile)
-  val setups = listSetups
+  val setups = Setup.CreateSetupsList(setupsDir)
   val scores = new Scores("scores.txt", this)
   private var _selected:Tile = null
   private var currentSetup:Setup = null
@@ -140,20 +136,6 @@ class Game(setupsDir:String, tileFile:String, generator:Generator) extends Simpl
   }
   
   def nextMovePossible : Boolean = getHint != null
-  
-  private def getSetup(setupFile:String) = {
-    val source = io.Source.fromFile(setupFile)
-    val lines = source.getLines.map(f => f).toList
-    source.close
-    new Setup(lines(0), lines(1), setupFile)
-  }
-  
-  private def listSetups = {
-    val fileArray = new File(setupsDir).listFiles
-    val fileNames = fileArray.map(f => f.getPath)
-    val filtered = fileNames.filter(_.endsWith(".txt"))
-    filtered.map(getSetup(_)).toList
-  }
   
   def setupById(setupId:String) = {
     val filtered = setups.filter(_.id == setupId)
