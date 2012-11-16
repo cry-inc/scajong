@@ -3,7 +3,7 @@ package scajong.util
 class SimpleNotification
 
 trait SimplePublisher {
-  private var subscribers = Set[SimpleSubscriber]()
+  var subscribers = Set[SimpleSubscriber]()
   
   def sendNotification(notification:SimpleNotification) {
 	  subscribers.foreach(_.processNotifications(notification))
