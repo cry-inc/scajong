@@ -13,7 +13,7 @@ class ScoreEntry(val setupId:String, val name:String, val ms:Int) {
 }
 
 object Scores {
-  val perSetupEntries = 10
+  val PerSetupEntries = 10
   val separator = "####"
 }
 
@@ -25,13 +25,13 @@ class Scores(scoreFile:String, publisher:SimplePublisher) {
   
   loadScores
 	
-	def isInScoreboard(setup:Setup, ms:Int) = getScores(setup).filter(_.ms < ms).size < Scores.perSetupEntries
+	def isInScoreboard(setup:Setup, ms:Int) = getScores(setup).filter(_.ms < ms).size < Scores.PerSetupEntries
 	
 	implicit val scoreOrdering = Ordering.by((s: ScoreEntry) => s.ms)
 	
 	def getScores(setup:Setup) = {
     val sorted = scores.filter(_.setupId == setup.id).sorted
-    sorted.take(10)
+    sorted.take(Scores.PerSetupEntries)
   }
 	
 	def getScorePosition(setup:Setup, ms:Int) = {

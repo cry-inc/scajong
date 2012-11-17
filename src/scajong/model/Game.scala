@@ -30,11 +30,11 @@ class Game(setupsDir:String, tileFile:String, generator:Generator) extends Simpl
     sendNotification(new SelectedTileNotification(_selected))
   }
   
-  def calcTileIndex(tile:Tile):Int = {
+  def calcTileIndex(tile:Tile) : Int = {
     calcTileIndex(tile.x, tile.y, tile.z)
   }
   
-  def calcTileIndex(x:Int, y:Int, z:Int) : Int = {
+  def calcTileIndex(x:Int, y:Int, z:Int) = {
     z * width * height + y * width + x
   }
   
@@ -56,7 +56,7 @@ class Game(setupsDir:String, tileFile:String, generator:Generator) extends Simpl
     }
   }
 
-  def getSortedTiles() : Array[Tile] = {
+  def sortedTiles() : Array[Tile] = {
     val list = tiles.map(_._2).toList
     implicit val tileOrdering = Ordering.by((t: Tile) => (t.z, t.y, t.x))
     list.sorted.toArray
@@ -125,7 +125,7 @@ class Game(setupsDir:String, tileFile:String, generator:Generator) extends Simpl
 	  }
   }
   
-  def getHint : TilePair = {
+  def hint : TilePair = {
     // TODO: rewrite without return
     var moveableTiles = tiles.map(_._2).filter(canMove(_))
     for (i <- moveableTiles; j <- moveableTiles) {
@@ -135,7 +135,7 @@ class Game(setupsDir:String, tileFile:String, generator:Generator) extends Simpl
     null
   }
   
-  def nextMovePossible : Boolean = getHint != null
+  def nextMovePossible : Boolean = hint != null
   
   def setupById(setupId:String) = {
     val filtered = setups.filter(_.id == setupId)

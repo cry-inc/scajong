@@ -91,7 +91,7 @@ class TextUI(val game:Game) {
   }
   
   def printHint {
-    val hint = game.getHint
+    val hint = game.hint
     println(game.calcTileIndex(hint.tile1) + " and " + game.calcTileIndex(hint.tile2))
   }
   

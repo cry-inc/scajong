@@ -91,7 +91,7 @@ class SwingFieldPanel(val game:Game, name:String) extends Panel with SimpleSubsc
   }
   
   def findTile(p:swing.Point) : Tile = {
-    val tiles = game.getSortedTiles.reverse
+    val tiles = game.sortedTiles.reverse
     for (tile <- tiles) {
       val x = tile.x * SwingFieldPanel.CellWidth - 5
       val y = tile.y * SwingFieldPanel.CellHeight - 5 - 5 * tile.z
@@ -118,8 +118,8 @@ class SwingFieldPanel(val game:Game, name:String) extends Panel with SimpleSubsc
   override def paintComponent(g: Graphics2D) : Unit = {
     g.setColor(new Color(255, 255, 255))
     g.fillRect(0, 0, preferredSize.width, preferredSize.height)
-    val tiles = game.getSortedTiles
-    var hint:TilePair = if (showHint) game.getHint else null
+    val tiles = game.sortedTiles
+    var hint:TilePair = if (showHint) game.hint else null
     for (tile <- tiles) {
       if (hint != null)
       	drawTile(g, tile, (hint.tile1 == tile || hint.tile2 == tile))

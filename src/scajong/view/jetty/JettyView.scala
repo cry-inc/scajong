@@ -153,8 +153,8 @@ class JettyView(game:Game) extends AbstractHandler with View with SimpleSubscrib
 	}
 	
 	def buildFieldJson = {
-	  val hintPair = game.getHint
-	  val tiles = game.getSortedTiles.reverse
+	  val hintPair = game.hint
+	  val tiles = game.sortedTiles.reverse
       var tilesJson = List[String]()
       tiles.foreach(tile => {
 	    val selected = if (tile == game.selected) "true" else  "false"
