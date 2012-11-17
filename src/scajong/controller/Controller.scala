@@ -4,7 +4,7 @@ import scajong.util._
 import scajong.model._
 import scajong.view._
 
-class SwingController(val game:Game) extends SimpleSubscriber {
+class Controller(val game:Game) extends SimpleSubscriber {
   
   override def processNotifications(sn:SimpleNotification) {
     sn match {
