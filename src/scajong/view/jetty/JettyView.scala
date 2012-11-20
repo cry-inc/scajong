@@ -20,10 +20,10 @@ class JsonNotification(val name:String, val id:Int, val param1:String = "", val 
   }
 }
 
-class JettyView(game:Game) extends AbstractHandler with View with SimpleSubscriber {
+class JettyView(game:Game, port:Int = 8080) extends AbstractHandler with View with SimpleSubscriber {
   
   private var notificationId = 0
-  private val server = new Server(8080)
+  private val server = new Server(port)
   private var notifications = List[JsonNotification]()
   private var addScoreNotification:WonNotification = null
   
