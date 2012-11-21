@@ -68,6 +68,14 @@ class JettyView(game:Game, port:Int = 8080) extends AbstractHandler with View wi
 	  val actionRegex = new Regex("^/action/(.+)$", "a")
 	  
 	  target match {
+	    case "/three.js" => {
+	      response.setContentType("application/x-javascript")
+	      stringData = FileUtil.readText("web/three.js")
+	    }
+	    case "/index_wgl.html" => {
+		    response.setContentType("text/html;charset=utf-8")
+		    stringData = FileUtil.readText("web/index_wgl.html")
+	    }
 	    case "/jquery.js" => {
 	      response.setContentType("application/x-javascript")
 	      stringData = FileUtil.readText("web/jquery.js")
@@ -160,12 +168,14 @@ class JettyView(game:Game, port:Int = 8080) extends AbstractHandler with View wi
 	    val selected = if (tile == game.selected) "true" else  "false"
 	    val moveable = if (game.canMove(tile)) "true" else "false"
 	    val hint = if (tile == hintPair.tile1 || tile == hintPair.tile2) "true" else "false"
-	    val tileType = if (tile.tileType == null) "empty" else tile.tileType.name  
+	    val tileType = if (tile.tileType == null) "empty" else tile.tileType.name
+	    val tileTypeId = if (tile.tileType == null) "-1" else tile.tileType.id.toString
 	    tilesJson = "          {\n" +
 	                "              \"x\": " + tile.x + ",\n" +
 	                "              \"y\": " + tile.y + ",\n" +
 	                "              \"z\": " + tile.z + ",\n" +
 	                "              \"type\": \"" + tileType + "\",\n" +
+	                "              \"typeId\": " + tileTypeId + ",\n" +
 	                "              \"selected\": " + selected + ",\n" +
 	                "              \"hint\": " + hint + ",\n" +
 	                "              \"moveable\": " + moveable + "\n" +
