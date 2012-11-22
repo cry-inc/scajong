@@ -66,23 +66,12 @@ class JettyView(game:Game, port:Int = 8080) extends AbstractHandler with View wi
 	  val scoreRegex = new Regex("^/scores/([A-Za-z0-9]+)\\.json$", "setupId")
 	  val setupImageRegex = new Regex("^/setups/([A-Za-z0-9]+)\\.png$", "setupId")
 	  val actionRegex = new Regex("^/action/(.+)$", "a")
+	  val jsRegex = new Regex("^/([a-z0-9]+)\\.js$", "script")
 	  
 	  target match {
-	    case "/three.js" => {
-	      response.setContentType("application/x-javascript")
-	      stringData = FileUtil.readText("web/three.js")
-	    }
-	    case "/jquery.mousewheel.js" => {
-	      response.setContentType("application/x-javascript")
-	      stringData = FileUtil.readText("web/jquery.mousewheel.js")
-	    }
 	    case "/index_wgl.html" => {
 		    response.setContentType("text/html;charset=utf-8")
 		    stringData = FileUtil.readText("web/index_wgl.html")
-	    }
-	    case "/jquery.js" => {
-	      response.setContentType("application/x-javascript")
-	      stringData = FileUtil.readText("web/jquery.js")
 	    }
 	    case "/field.json" => {
 	      response.setContentType("application/json")
@@ -131,12 +120,19 @@ class JettyView(game:Game, port:Int = 8080) extends AbstractHandler with View wi
 	      stringData = if (setup != null) buildScoresJson(setup) else "{}"
 	    }
 	    case actionRegex(a) => {
-    		response.setContentType("application/json")
-    		stringData = action(a)
+	    	response.setContentType("application/json")
+	    	stringData = action(a)
+	    }
+	    case jsRegex(script) => {
+	    	val fn = "web/" + script + ".js"
+  			if (FileUtil.exists(fn)) {
+  				response.setContentType("application/x-javascript")
+  				stringData = FileUtil.readText(fn)
+  			}
 	    }
 	    case _ => {
-		    response.setContentType("text/html;charset=utf-8")
-		    stringData = FileUtil.readText("web/index.html")
+	    	response.setContentType("text/html;charset=utf-8")
+	    	stringData = FileUtil.readText("web/index.html")
 	    }
 	  }
 	  
@@ -191,6 +187,7 @@ class JettyView(game:Game, port:Int = 8080) extends AbstractHandler with View wi
     "    \"fieldheight\": " + game.height + ",\n" +
     "    \"tilewidth\": " + Tile.Width + ",\n" +
     "    \"tileheight\": " + Tile.Height + ",\n" +
+    "    \"tiledepth\": " + Tile.Depth + ",\n" +
     "    \"tiles\": [\n" + tilesJson.mkString(",\n") + "\n" +
     "    ]\n" +
     "}\n"

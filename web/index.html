@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <meta charset="UTF-8">
+        <meta charset="UTF-8" />
         <title>Scajong</title>
         <script src="jquery.js"></script>
         <script type="text/javascript">
@@ -109,12 +109,7 @@
             
             function processTilesData(json) {
                 numberOfAllTiles = json['types'].length;
-                var otherImages = new Array();
-                otherImages[0] = 'selected';
-                otherImages[1] = 'hint';
-                otherImages[2] = 'empty';
-                otherImages[3] = 'tile';
-                otherImages[4] = 'disabled';
+                var otherImages = new Array('selected', 'hint', 'empty', 'tile', 'disabled');
                 numberOfAllTiles += otherImages.length;
                 $.each(json['types'], function(i, item) {
                     tileImages[item.name] = new Image();

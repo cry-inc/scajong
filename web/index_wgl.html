@@ -1,58 +1,22 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <meta charset="UTF-8">
+        <meta charset="UTF-8" />
         <title>Scajong</title>
         <script src="jquery.js"></script>
-        <script src="jquery.mousewheel.js"></script>
+        <script src="mousewheel.js"></script>
         <script src="three.js"></script>
-        <!-- Shaders -->
-        <script type="x-shader/x-vertex" id="vertexshader">
-            varying vec2 vUv;
-            
-            void main() {
-                vUv = uv;
-                gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0);
-            }
-        </script>
-        <script type="x-shader/x-fragment" id="fragmentshader">
-            
-            uniform sampler2D texture1;
-            uniform sampler2D texture2;
-            uniform int marked;
-            varying vec2 vUv;
-            
-            void main() {
-                vec4 bg = texture2D(texture1, vUv);
-                vec4 tile = texture2D(texture2, vUv);
-                vec4 markedCol = vec4(1.0, 0.0, 0.0, 1.0);
-                
-                if (tile[3] <= 0.1) {
-                    if (marked != 0)
-                        gl_FragColor = bg * markedCol;
-                    else
-                        gl_FragColor = bg;
-                } else {
-                    gl_FragColor = tile;
-                }
-                
-                //gl_FragColor = vec4(1.0, 0.0, 1.0, 1.0);
-            }
-        </script>
-        <!-- End Shaders -->
+        <script src="stats.js"></script>
         <script type="text/javascript">
-            const CellWidth = 30;
-            const CellHeight = 20;
-            const TileOffset = 5;
-            const TileImageWidth = 75;
-            const TileImageHeight = 95;
-
             var showHint = false;
             var showMoveables = false;
 			var lastId = -1;
             var scorePosition = -1;
 			var field;
 			var setups;
+            var images = {};
+			var tileCounter = 0;
+			var numberOfAllTiles;
             
             // WebGL
             var winWidth = 800;
@@ -61,16 +25,185 @@
             var renderer;
             var projector;
             var objects = [];
-            var textures = [];
+            var textures = {};
             var scene;
+            var stats;
+            var xScale = 15;
+            var yScale = 9;
+            var zScale = 10;
+            var angleSide = Math.PI/2;
+            var angleHeight = 1;
+            var radius = 400;
+            var oldX;
+            var oldY;
+            var startX;
+            var startY;
                        
             function initWebGl() {
                 camera = new THREE.PerspectiveCamera(50, winWidth/winHeight, 1, 1000);
                 projector = new THREE.Projector();
-                var fieldCanvas = document.getElementById('field');
-                renderer = new THREE.WebGLRenderer({canvas:fieldCanvas, antialias:true});
+                renderer = new THREE.WebGLRenderer({canvas:document.getElementById('field'), antialias:true});
                 renderer.setSize(winWidth, winHeight);
                 renderer.setClearColor(new THREE.Color(0xcccccc), 1);
+                renderer.shadowMapEnabled = true;
+                renderer.shadowMapSoft = true;
+                scene = new THREE.Scene();
+                stats = new Stats();
+				stats.domElement.style.position = 'absolute';
+				stats.domElement.style.top = '40px';
+                stats.domElement.style.left = '20px';
+				document.getElementById('fieldPanel').appendChild(stats.domElement);
+                render();
+            }
+
+            function setCamera() {
+                var cx = field['fieldwidth'] * xScale * 0.5;
+                var cy = field['fieldheight'] * zScale * 0.5;
+                camera.position.x = radius * Math.cos(angleSide) * Math.sin(angleHeight) + cx;
+                camera.position.z = radius * Math.sin(angleSide) * Math.sin(angleHeight) + cy;
+                camera.position.y = radius * Math.cos(angleHeight);
+                camera.lookAt(new THREE.Vector3(cx, 0, cy));
+            }
+            
+            function render() {
+				requestAnimationFrame(render);
+				renderer.render(scene, camera);
+				stats.update();
+            }
+            
+			function rebuild() {
+                scene = new THREE.Scene();
+                objects = [];
+
+                setCamera();
+                scene.add(camera);
+                
+                // Light
+                var light = new THREE.SpotLight(0xffffff);
+                var cx = field.fieldwidth * xScale * 0.5;
+                var cy = field.fieldheight * zScale * 0.5;
+                light.position.x = 0;
+                light.position.y = 600;
+                light.position.z = 0;
+                light.target.position.x = cx;
+                light.target.position.y = 0;
+                light.target.position.z = cy;
+                light.castShadow = true;
+                light.shadowDarkness = 0.5;
+                //light.shadowCameraVisible = true;
+                scene.add(light);
+                
+                // Table
+                var table = new THREE.CubeGeometry(field.fieldwidth * xScale * 2, yScale, field.fieldheight * zScale * 2);
+                var tableMesh = new THREE.Mesh(table, new THREE.MeshPhongMaterial({color: 0xffffff}));
+                tableMesh.position.x = cx;
+                tableMesh.position.z = cy;
+                tableMesh.position.y = -yScale;
+                tableMesh.castShadow = false;
+                tableMesh.receiveShadow = true;
+                scene.add(tableMesh);
+
+                // Tiles
+                var geometry = new THREE.CubeGeometry(field.tilewidth * xScale, field.tiledepth * yScale, field.tileheight * zScale);
+                $.each(field.tiles, function(i, item) {
+                    var c = 0xffffff;
+                    if (item.selected) {
+                        c = 0xFAB77D;
+                    } else if (showHint && item.hint) {
+                        c = 0xC9CCF5;
+                    } else if (showMoveables && !item.moveable) {
+                        c = 0x787878;
+                    }
+                    var material = new THREE.MeshPhongMaterial({map: textures[item.type], color: c, specular: 0x555555, shininess: 30});
+                    var tileMesh = new THREE.Mesh(geometry, material);
+                    tileMesh.position.x = xScale * item.x;
+                    tileMesh.position.z = zScale * item.y;
+                    tileMesh.position.y = yScale * item.z;
+                    tileMesh.tile = item;
+                    tileMesh.castShadow = true;
+                    tileMesh.receiveShadow = true;
+                    scene.add(tileMesh);
+                    objects.push(tileMesh);
+                    /*
+                    if (item.selected) {
+                        var markerMesh = new THREE.Mesh(geometry, new THREE.LineBasicMaterial({color: 0xff0000, wireframe: true, linewidth: 3.0}));
+                        markerMesh.position.x = xScale * item.x;
+                        markerMesh.position.z = zScale * item.y;
+                        markerMesh.position.y = yScale * item.z;
+                        scene.add(markerMesh);
+                    }*/
+                });
+			}
+            
+           function canvasClick(e) {
+                var x = e.pageX - $("#field").position().left;
+                var y = e.pageY - $("#field").position().top;
+                var vector = new THREE.Vector3((x / winWidth) * 2 - 1, -(y / winHeight) * 2 + 1, 0.5);
+				projector.unprojectVector(vector, camera);
+				var ray = new THREE.Ray(camera.position, vector.subSelf(camera.position).normalize());
+				var intersects = ray.intersectObjects(objects);
+                if (intersects.length > 0) {    
+                    var tile = intersects[0].object.tile;
+                    var url = '/action/select_' + tile.x + '_' + tile.y + '_' + tile.z;
+                    $.getJSON(url, processAction);
+                    updateField();
+				}
+            }
+
+            function mouseDown(e) {
+                $("#field").mousemove(mouseMove);
+                var x = e.pageX - this.offsetLeft;
+                var y = e.pageY - this.offsetTop;
+                oldX = x;
+                oldY = y;
+                startX = x;
+                startY = y;
+            }
+            
+            var animated = false;
+            function rotate() {
+                if (animated) {
+                    angleSide += 0.025;
+                    angleHeight += Math.sin(angleSide*0.5) * 0.003;
+                    setCamera();
+                    setTimeout(rotate, 20);
+                }
+            }
+            
+            function animate() {
+                animated = !animated;
+                rotate();
+            }
+            
+            function mouseMove(e) {
+                var x = e.pageX - this.offsetLeft;
+                var y = e.pageY - this.offsetTop;
+                var dx = x-oldX;
+                var dy = y-oldY;
+                
+                angleSide += dx * 0.005;
+                angleHeight -= dy * 0.005;
+                if (angleHeight < 0.1) angleHeight = 0.1;
+                if (angleHeight > 1.4) angleHeight = 1.4;
+                
+                oldX = x;
+                oldY = y;
+                setCamera();
+            }
+            
+            function mouseUp(e) {
+                $("#field").unbind('mousemove');
+                var x = e.pageX - $("#field").position().left;
+                var y = e.pageY - $("#field").position().top;
+
+                if (x == startX && y == startY) {
+                    canvasClick(e);
+                }
+            }
+           
+            function mouseWheel(e, delta) {
+                radius -= delta * 10;
+                setCamera();
             }
             
 			function selectPanel(name) {
@@ -127,74 +260,48 @@
             
             function processFieldData(json) {
                 field = json;
-				redraw();
+				rebuild();
             }
-			
-            var angleSide = Math.PI/2;
-            var angleHeight = 1;
-            var radius = 400;
-            
-            function setCamera() {
-                var cx = field['fieldwidth'] * 5;
-                var cy = -field['fieldheight'] * 5;
-                camera.lookAt(new THREE.Vector3(cx, 0, cy));
-                camera.position.x = radius * Math.cos(angleSide) * Math.sin(angleHeight) + cx;
-                camera.position.z = radius * Math.sin(angleSide) * Math.sin(angleHeight) + cy;
-                camera.position.y = radius * Math.cos(angleHeight);
-            }
-            
-			function redraw() {
-                scene = new THREE.Scene();
-                objects = [];
-
-                setCamera();
-                scene.add(camera);
-                
-                /*
-                // Light
-                var light = new THREE.PointLight(0xFFFFFF);
-                light.position.x = cx;
-                light.position.y = cy - 100;
-                light.position.z = 250;
-                scene.add(light);
-                */
-
-                // Tiles
-                var geometry = new THREE.CubeGeometry(20, 10, 40);
-                $.each(field['tiles'], function(i, item) {
-                    var shaderMat = new THREE.ShaderMaterial({
-                        uniforms: {
-                            marked: { type: "i", value: item.selected ? 1 : 0 },
-                            texture1: {type: "t", value: textures['texture']},
-                            texture2: {type: "t", value: textures[item.type]}
-                        },
-                        vertexShader:   document.getElementById('vertexshader').textContent,
-                        fragmentShader: document.getElementById('fragmentshader').textContent
-                    });
-                    var tileMesh = new THREE.Mesh(geometry, shaderMat);
-                    tileMesh.position.x = item.x * 10;
-                    tileMesh.position.z = -item.y * 10;
-                    tileMesh.position.y = item.z * 10;
-                    tileMesh.tile = item;
-                    scene.add(tileMesh);
-                    objects.push(tileMesh);
-                });
-                renderer.render(scene, camera);
-			}
             
             function loadTiles() {
                 $.getJSON('/tiles.json', processTilesData);
             }
             
             function processTilesData(json) {
-                var otherImages = new Array('selected', 'hint', 'empty', 'tile', 'disabled', 'texture');
-                $.each(json['types'], function(i, item) {
-                    textures[item.name] = THREE.ImageUtils.loadTexture('tiles/'  + item.name + '.png');
+                var otherImages = new Array('texture');
+                numberOfAllTiles = json.types.length;
+                numberOfAllTiles += otherImages.length;
+                $.each(json.types, function(i, item) {
+                    images[item.name] = new Image();
+                    images[item.name].onload = imageLoaded;
+                    images[item.name].src = 'tiles/'  + item.name + '.png';
                 });
                 $.each(otherImages, function(i, item) {
-                    textures[item] = THREE.ImageUtils.loadTexture('tiles/'  + item + '.png');
+                    images[item] = new Image();
+                    images[item].onload = imageLoaded;
+                    images[item].src = 'tiles/'  + item + '.png';
                 });
-                loadSetups();
+            }
+            
+            function imageLoaded() {
+                tileCounter++;
+                if (tileCounter == numberOfAllTiles) {
+                    $.each(images, function(key, item) {
+                        textures[key] = new THREE.Texture(blend(images['texture'], images[key]));
+                        textures[key].needsUpdate = true;
+                    });
+                    loadSetups();
+                }
+            }
+            
+            function blend(bg, top) {
+                var canvas = document.createElement('canvas');
+                canvas.width = bg.width;
+                canvas.height = bg.height;
+                var ctx = canvas.getContext('2d');
+                ctx.drawImage(bg, 0, 0);
+                ctx.drawImage(top, 0, 0, bg.width, bg.height);
+                return canvas;
             }
 			
 			function loadSetups() {
@@ -235,88 +342,18 @@
             
             function moveablesClick(e) {
                 showMoveables = true
-				redraw();
-                setTimeout(function() { showMoveables = false; redraw(); }, 5000);
+				rebuild();
+                setTimeout(function() { showMoveables = false; rebuild(); }, 5000);
                 var url = '/action/moveables';
                 $.getJSON(url, processAction);
             }
             
             function hintClick(e) {
                 showHint = true
-				redraw();
-                setTimeout(function() { showHint = false; redraw(); }, 1000);
+				rebuild();
+                setTimeout(function() { showHint = false; rebuild(); }, 1000);
                 var url = '/action/hint';
                 $.getJSON(url, processAction);
-            }
-
-            function canvasClick(e) {
-                var x = e.pageX - $("#field").position().left;
-                var y = e.pageY - $("#field").position().top;
-                var vector = new THREE.Vector3((x / winWidth) * 2 - 1, -(y / winHeight) * 2 + 1, 0.5);
-				projector.unprojectVector(vector, camera);
-				var ray = new THREE.Ray(camera.position, vector.subSelf(camera.position).normalize());
-				var intersects = ray.intersectObjects(objects);
-                if (intersects.length > 0) {    
-                    var tile = intersects[0].object.tile;
-                    var url = '/action/select_' + tile.x + '_' + tile.y + '_' + tile.z;
-                    $.getJSON(url, processAction);
-                    updateField();
-				}
-            }
-            
-            var oldX;
-            var oldY;
-            var startX;
-            var startY;
-            
-            function mouseDown(e) {
-                $("#field").mousemove(mouseMove);
-                var x = e.pageX - this.offsetLeft;
-                var y = e.pageY - this.offsetTop;
-                oldX = x;
-                oldY = y;
-                startX = x;
-                startY = y;
-            }
-            
-            function animate() {
-                angleSide -= 0.025;
-                setCamera();
-                renderer.render(scene, camera);
-                setTimeout(animate, 12);
-            }
-            
-            function mouseMove(e) {
-                var x = e.pageX - this.offsetLeft;
-                var y = e.pageY - this.offsetTop;
-                var dx = x-oldX;
-                var dy = y-oldY;
-                
-                angleSide += dx * 0.005;
-                angleHeight -= dy * 0.005;
-                if (angleHeight < 0.1) angleHeight = 0.1;
-                if (angleHeight > 1.4) angleHeight = 1.4;
-                
-                oldX = x;
-                oldY = y;
-                setCamera();
-                renderer.render(scene, camera);
-            }
-            
-            function mouseUp(e) {
-                $("#field").unbind('mousemove');
-                var x = e.pageX - $("#field").position().left;
-                var y = e.pageY - $("#field").position().top;
-
-                if (x == startX && y == startY) {
-                    canvasClick(e);
-                }
-            }
-            
-            function mouseWheel(e, delta) {
-                radius -= delta * 10;
-                setCamera();
-                renderer.render(scene, camera);
             }
 			
 			function loadScore(scoreIndex) {
