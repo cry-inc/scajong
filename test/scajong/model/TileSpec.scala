@@ -21,7 +21,7 @@ class TileSpec extends SpecificationWithJUnit {
   }
   
   "A Tile" should {
-		val tile = new Tile(1, 2, 3, null)
+		val tile = new Tile(1, 2, 3, new TileType(23, "t42"))
 	  
 	  "have an x value" in {
 			tile.x must be_==(1)
@@ -36,8 +36,6 @@ class TileSpec extends SpecificationWithJUnit {
 		}
 		
 		"be able to change the tileType" in {
-		  val tileType = new TileType(23, "t42")
-		  tile.tileType = tileType
 		  tile.tileType.id must be_==(23)
 		  tile.tileType.name must be_==("t42")
 		}
