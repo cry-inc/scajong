@@ -4,6 +4,7 @@
         <meta charset="UTF-8">
         <title>Scajong</title>
         <script src="jquery.js"></script>
+        <script src="jquery.mousewheel.js"></script>
         <script src="three.js"></script>
         <!-- Shaders -->
         <script type="x-shader/x-vertex" id="vertexshader">
@@ -54,18 +55,21 @@
 			var setups;
             
             // WebGL
+            var winWidth = 800;
+            var winHeight = 600;
             var camera;
             var renderer;
             var projector;
             var objects = [];
             var textures = [];
+            var scene;
                        
             function initWebGl() {
-                camera = new THREE.PerspectiveCamera(50, 4.0/3.0, 1, 1000);
+                camera = new THREE.PerspectiveCamera(50, winWidth/winHeight, 1, 1000);
                 projector = new THREE.Projector();
                 var fieldCanvas = document.getElementById('field');
                 renderer = new THREE.WebGLRenderer({canvas:fieldCanvas, antialias:true});
-                renderer.setSize(800, 600);
+                renderer.setSize(winWidth, winHeight);
                 renderer.setClearColor(new THREE.Color(0xcccccc), 1);
             }
             
@@ -126,18 +130,24 @@
 				redraw();
             }
 			
-			function redraw() {
-                var scene = new THREE.Scene();
-                objects = [];
-                
+            var angleSide = Math.PI/2;
+            var angleHeight = 1;
+            var radius = 400;
+            
+            function setCamera() {
                 var cx = field['fieldwidth'] * 5;
                 var cy = -field['fieldheight'] * 5;
-                
-                // Move camera
-                camera.lookAt(new THREE.Vector3(cx, cy, 0));
-                camera.position.x = cx;
-                camera.position.y = cy - 300;
-                camera.position.z = 300;
+                camera.lookAt(new THREE.Vector3(cx, 0, cy));
+                camera.position.x = radius * Math.cos(angleSide) * Math.sin(angleHeight) + cx;
+                camera.position.z = radius * Math.sin(angleSide) * Math.sin(angleHeight) + cy;
+                camera.position.y = radius * Math.cos(angleHeight);
+            }
+            
+			function redraw() {
+                scene = new THREE.Scene();
+                objects = [];
+
+                setCamera();
                 scene.add(camera);
                 
                 /*
@@ -150,7 +160,7 @@
                 */
 
                 // Tiles
-                var geometry = new THREE.CubeGeometry(20, 40, 10);
+                var geometry = new THREE.CubeGeometry(20, 10, 40);
                 $.each(field['tiles'], function(i, item) {
                     var shaderMat = new THREE.ShaderMaterial({
                         uniforms: {
@@ -163,13 +173,12 @@
                     });
                     var tileMesh = new THREE.Mesh(geometry, shaderMat);
                     tileMesh.position.x = item.x * 10;
-                    tileMesh.position.y = -item.y * 10;
-                    tileMesh.position.z = item.z * 10;
+                    tileMesh.position.z = -item.y * 10;
+                    tileMesh.position.y = item.z * 10;
                     tileMesh.tile = item;
                     scene.add(tileMesh);
                     objects.push(tileMesh);
                 });
-
                 renderer.render(scene, camera);
 			}
             
@@ -239,42 +248,11 @@
                 var url = '/action/hint';
                 $.getJSON(url, processAction);
             }
-            
-			function predictNewModel(tile) {
-				var oldTileIndex = -1;
-				var newTileIndex = -1;
-				for (var i = 0; i < field.tiles.length; i++) {
-					if (field.tiles[i].selected == true) {
-						oldTileIndex = i;
-						field.tiles[i].selected = false;
-					}
-				}
-				for (var i = 0; i < field.tiles.length; i++) {
-					if (tile.x == field.tiles[i].x && 
-							tile.y == field.tiles[i].y &&
-							tile.z == field.tiles[i].z &&
-						field.tiles[i].moveable == true) {
-						newTileIndex = i;
-						field.tiles[i].selected = true;
-					}
-				}
-				if (oldTileIndex != -1 && newTileIndex != -1 && oldTileIndex != newTileIndex &&
-						field.tiles[oldTileIndex].type == field.tiles[newTileIndex].type) {
-					if (oldTileIndex > newTileIndex) {
-						field.tiles.splice(oldTileIndex, 1);
-						field.tiles.splice(newTileIndex, 1);
-					} else {
-						field.tiles.splice(newTileIndex, 1);
-						field.tiles.splice(oldTileIndex, 1);
-					}
-				}
-				redraw();
-			}
-			
-            function canvasClick (e) {
-                var x = e.pageX - this.offsetLeft;
-                var y = e.pageY - this.offsetTop;
-                var vector = new THREE.Vector3((x / 800) * 2 - 1, -(y / 600) * 2 + 1, 0.5);
+
+            function canvasClick(e) {
+                var x = e.pageX - $("#field").position().left;
+                var y = e.pageY - $("#field").position().top;
+                var vector = new THREE.Vector3((x / winWidth) * 2 - 1, -(y / winHeight) * 2 + 1, 0.5);
 				projector.unprojectVector(vector, camera);
 				var ray = new THREE.Ray(camera.position, vector.subSelf(camera.position).normalize());
 				var intersects = ray.intersectObjects(objects);
@@ -282,9 +260,63 @@
                     var tile = intersects[0].object.tile;
                     var url = '/action/select_' + tile.x + '_' + tile.y + '_' + tile.z;
                     $.getJSON(url, processAction);
-                    //predictNewModel(tile);
                     updateField();
 				}
+            }
+            
+            var oldX;
+            var oldY;
+            var startX;
+            var startY;
+            
+            function mouseDown(e) {
+                $("#field").mousemove(mouseMove);
+                var x = e.pageX - this.offsetLeft;
+                var y = e.pageY - this.offsetTop;
+                oldX = x;
+                oldY = y;
+                startX = x;
+                startY = y;
+            }
+            
+            function animate() {
+                angleSide -= 0.025;
+                setCamera();
+                renderer.render(scene, camera);
+                setTimeout(animate, 12);
+            }
+            
+            function mouseMove(e) {
+                var x = e.pageX - this.offsetLeft;
+                var y = e.pageY - this.offsetTop;
+                var dx = x-oldX;
+                var dy = y-oldY;
+                
+                angleSide += dx * 0.005;
+                angleHeight -= dy * 0.005;
+                if (angleHeight < 0.1) angleHeight = 0.1;
+                if (angleHeight > 1.4) angleHeight = 1.4;
+                
+                oldX = x;
+                oldY = y;
+                setCamera();
+                renderer.render(scene, camera);
+            }
+            
+            function mouseUp(e) {
+                $("#field").unbind('mousemove');
+                var x = e.pageX - $("#field").position().left;
+                var y = e.pageY - $("#field").position().top;
+
+                if (x == startX && y == startY) {
+                    canvasClick(e);
+                }
+            }
+            
+            function mouseWheel(e, delta) {
+                radius -= delta * 10;
+                setCamera();
+                renderer.render(scene, camera);
             }
 			
 			function loadScore(scoreIndex) {
@@ -321,7 +353,7 @@
                 var url = '/action/addscore_' + name;
                 $.getJSON(url, processAction);
             }
-
+            
         </script>
         <style type="text/css">
             a { color: black; }
@@ -348,7 +380,8 @@
             <canvas id="field"></canvas><br />
             <button id="moveableButton" type="button">Show Moveables (+5 Seconds)</button>
             <button id="hintButton" type="button">Show Hint (+15 Seconds)</button>
-            <button id="updateButton" type="button">Update Field</button>
+            <button id="updateButton" type="button">Update</button>
+            <button id="animateButton" type="button">Animate</button>
         </div>
         <div id="setupsPanel" style="display:none">SETUPS</div>
         <div id="scoresPanel" style="display:none">SCORES</div>
@@ -363,7 +396,10 @@
 			$("#moveableButton").click(moveablesClick);
             $("#hintButton").click(hintClick);
             $("#updateButton").click(updateField);
-            $("#field").click(canvasClick);
+            $("#animateButton").click(animate);
+            $('#field').bind('mousewheel', mouseWheel);
+            $("#field").mousedown(mouseDown);
+            $("body").mouseup(mouseUp);
             $("#addScoreButton").click(sendScoreName);
             $('#nameInput').keypress(function(e) {
                 if(e.which == 13) {

@@ -72,6 +72,10 @@ class JettyView(game:Game, port:Int = 8080) extends AbstractHandler with View wi
 	      response.setContentType("application/x-javascript")
 	      stringData = FileUtil.readText("web/three.js")
 	    }
+	    case "/jquery.mousewheel.js" => {
+	      response.setContentType("application/x-javascript")
+	      stringData = FileUtil.readText("web/jquery.mousewheel.js")
+	    }
 	    case "/index_wgl.html" => {
 		    response.setContentType("text/html;charset=utf-8")
 		    stringData = FileUtil.readText("web/index_wgl.html")
