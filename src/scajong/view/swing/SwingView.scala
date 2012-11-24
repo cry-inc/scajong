@@ -14,8 +14,12 @@ class SwingView(game:Game, name:String = "") extends Frame with View with Simple
   
   val fieldPanel = new SwingFieldPanel(game, name)
   val scorePanel = new SwingScoresPanel(game.scores)
-  val setupSelectPanel = new SwingSetupsPanel(game.setups, "Setup")
-  val scoreSelectPanel = new SwingSetupsPanel(game.setups, "Score")
+  val setupSelectPanel = new SwingSetupsPanel(game.setups) {
+    def notification(setup:Setup) = new SetupSelectedEvent(setup)
+  }
+  val scoreSelectPanel = new SwingSetupsPanel(game.setups) {
+    def notification(setup:Setup) = new ScoreSelectedEvent(setup)
+  }
 
   game.addSubscriber(this)
   listenTo(fieldPanel)
