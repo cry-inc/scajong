@@ -8,6 +8,8 @@ import org.eclipse.jetty.server._
 import org.eclipse.jetty.server.handler.AbstractHandler
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
+import org.eclipse.jetty.continuation.Continuation
+import org.eclipse.jetty.continuation.ContinuationSupport
 
 class JsonNotification(val name:String, val id:Int, val param1:String = "", val param2:String = "") {
   override def toString = {
@@ -22,9 +24,10 @@ class JsonNotification(val name:String, val id:Int, val param1:String = "", val 
 
 class JettyView(game:Game, port:Int = 8080) extends AbstractHandler with View with SimpleSubscriber {
   
-  private var notificationId = 0
+  private var notificationId = 1
   private val server = new Server(port)
   private var notifications = List[JsonNotification]()
+  private var continuations = List[Continuation]()
   private var addScoreNotification:WonNotification = null
   
   server.setHandler(this);
@@ -36,6 +39,8 @@ class JettyView(game:Game, port:Int = 8080) extends AbstractHandler with View wi
     notifications = notification :: notifications
     if (notifications.length > 15)
       notifications = notifications.take(15)
+    continuations.foreach(_.resume)
+    continuations = List[Continuation]()
   }
   
   override def processNotifications(sn:SimpleNotification) {
@@ -54,6 +59,14 @@ class JettyView(game:Game, port:Int = 8080) extends AbstractHandler with View wi
       case n:NewScoreBoardEntryNotification => addNotification("ShowScore", n.setup.id, n.position.toString)
       case _ => // Nothing
     }
+  }
+  
+  private def s2i(str:String) = {
+		try {
+		  str.toInt
+		} catch {
+		  case _ => 0
+		}
   }
 
 	override def handle(target:String, baseRequest:Request, request:HttpServletRequest, response:HttpServletResponse) {	  
@@ -78,10 +91,19 @@ class JettyView(game:Game, port:Int = 8080) extends AbstractHandler with View wi
 	      stringData = buildFieldJson
 	    }
 	    case "/notifications.json" => {
-	      // TODO: http://wiki.eclipse.org/Jetty/Feature/Continuations
-	      response.setContentType("application/json")
-	      stringData = buildNotificationsJson
-	    }
+				val last = s2i(request.getParameter("wait"))
+				if (notifications.length > 0 && notifications.head.id <= last) {
+				  // No new notifications, wait
+				  val continuation = ContinuationSupport.getContinuation(request)
+				  continuation.setTimeout(10000)
+				  continuation.suspend()
+				  continuations = continuation :: continuations
+				} else {
+				  // New notifications, send answer immediately
+				  response.setContentType("application/json")
+				    stringData = buildNotificationsJson
+				  }
+				}
 	    case "/tiles.json" => {
 	      response.setContentType("application/json")
 	      stringData = buildTilesJson

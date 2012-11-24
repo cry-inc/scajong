@@ -10,7 +10,7 @@
         <script type="text/javascript">
             var showHint = false;
             var showMoveables = false;
-			var lastId = -1;
+			var lastId = 0;
             var scorePosition = -1;
 			var field;
 			var setups;
@@ -219,7 +219,7 @@
 			}
 			
 			function checkNotifications() {
-				$.getJSON('/notifications.json', processNotifications);
+				$.getJSON('/notifications.json?wait='+lastId, processNotifications);
 			}
 			
 			function processNotifications(json) {
@@ -251,7 +251,7 @@
 						lastId = item.id;
 					}
                 });
-				setTimeout(checkNotifications, 1000);
+				setTimeout(checkNotifications, 100);
 			}
             
             function updateField() {
