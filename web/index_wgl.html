@@ -114,8 +114,14 @@
                     } else if (showMoveables && !item.moveable) {
                         c = 0x787878;
                     }
-                    var material = new THREE.MeshPhongMaterial({map: textures[item.type], color: c, specular: 0x555555, shininess: 30});
-                    var tileMesh = new THREE.Mesh(geometry, material);
+                    var topMat = new THREE.MeshPhongMaterial({map: textures[item.type], color: c, specular: 0x555555, shininess: 30});
+                    var sideMath = new THREE.MeshPhongMaterial({map: textures['texture'], color: c, specular: 0x555555, shininess: 30});
+                    var materials = [];
+                    for (var i=0; i<6; i++) {
+                        if (i == 2) materials.push(topMat);
+                        else materials.push(sideMath);
+                    }
+                    var tileMesh = new THREE.Mesh(geometry, new THREE.MeshFaceMaterial(materials)); //topMat); //
                     tileMesh.position.x = xScale * item.x;
                     tileMesh.position.z = zScale * item.y;
                     tileMesh.position.y = yScale * item.z;
