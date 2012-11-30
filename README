@@ -1,0 +1,32 @@
+Scajong
+
+A simple Mahjong solitaire game written in the programming language Scala.
+The game does not use the typical Mahjong tiles, instead it uses the logos
+of various Open Source related projects and organisations. Can you name them?
+
+This game was written for a Scala course called at the University of Applied
+Sciences in Constance in the fall 2012.
+
+Building:
+
+The easy way to build the game from source is sbt (http://www.scala-sbt.org/).
+To build a standalone .jar with all dependencies you can use the assembly
+command. Just install sbt from the sbt website, open a command line in this
+folder and run "sbt assembly". This should load all needed libraries and start
+the building and packaging. The result should be a scajong.jar file in the
+project folder.
+
+If you use Eclipse, you have to download the required jar files of all the
+refrenced library and put them in the directory of the project. You can see
+the required libraries by opening the included .classpath file in an editor!
+
+Testing:
+
+We supply tests for most of our classes except the Views. They are located in
+the test folder. You can run them either over Eclipse with JUnit or with sbt.
+Open a command line in the project dir and run "sbt test" to execute all tests.
+
+We also included scct (http://mtkopone.github.com/scct/) to measure the code
+coverage of our tests. To run scct open a command line in the project dir and
+run "sbt clean scct:test". The results will be saved as HTML files in the
+project subdirectory "target\scala-x.x.x\coverage-report\".
