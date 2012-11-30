@@ -14,10 +14,10 @@ class SwingView(game:Game, name:String = "") extends Frame with View with Simple
   
   val fieldPanel = new SwingFieldPanel(game, name)
   val scorePanel = new SwingScoresPanel(game.scores)
-  val setupSelectPanel = new SwingSetupsPanel(game.setups) {
+  val setupSelectPanel = new SwingSetupsPanel(game.setups, "Start a new game") {
     def notification(setup:Setup) = new SetupSelectedEvent(setup)
   }
-  val scoreSelectPanel = new SwingSetupsPanel(game.setups) {
+  val scoreSelectPanel = new SwingSetupsPanel(game.setups, "Show scores") {
     def notification(setup:Setup) = new ScoreSelectedEvent(setup)
   }
 
@@ -41,35 +41,35 @@ class SwingView(game:Game, name:String = "") extends Frame with View with Simple
   
   override def processNotifications(sn:SimpleNotification) {
     sn match {
-    	case n: WonNotification => won(n.setup, n.ms)
-    	case n: CreatedGameNotification => fieldPanel.updateSize; selectPanel(fieldPanel); pack
-    	case n: NewScoreBoardEntryNotification => scorePanel.showScores(n.setup); selectPanel(scorePanel)
+      case n: WonNotification => won(n.setup, n.ms)
+      case n: CreatedGameNotification => fieldPanel.updateSize; selectPanel(fieldPanel); pack
+      case n: NewScoreBoardEntryNotification => scorePanel.showScores(n.setup); selectPanel(scorePanel)
       case _ => // Nothing
     }
   }
   
   val swingView = this
-  menuBar = new MenuBar{
-     contents += new Menu("Game") {
-        contents += new MenuItem(Action("Start new Game") {
-          swingView.publish(new StartGameEvent)
-        })
-        contents += new MenuItem(Action("Show Scores") {
-          swingView.publish(new ShowScoresEvent)
-        })
-        contents += new MenuItem(Action("Close") {
-          checkForLastFrame
-          dispose
-        })
-     }
-     contents += new Menu("Cheats") {
-        contents += new MenuItem(Action("Show Moveables (+5 sec)") {
-          fieldPanel.enableMoveables
-        })
-        contents += new MenuItem(Action("Show Hint (+15 sec)") {
-          fieldPanel.enableHint
-        })
-     }
+  menuBar = new MenuBar {
+    contents += new Menu("Game") {
+      contents += new MenuItem(Action("Start new Game") {
+        swingView.publish(new StartGameEvent)
+      })
+      contents += new MenuItem(Action("Show Scores") {
+        swingView.publish(new ShowScoresEvent)
+      })
+      contents += new MenuItem(Action("Close") {
+        checkForLastFrame
+        dispose
+      })
+    }
+    contents += new Menu("Cheats") {
+      contents += new MenuItem(Action("Show Moveables (+5 sec)") {
+        fieldPanel.enableMoveables
+      })
+      contents += new MenuItem(Action("Show Hint (+15 sec)") {
+        fieldPanel.enableHint
+      })
+    }
   }
   
   title = "ScaJong"
@@ -85,14 +85,14 @@ class SwingView(game:Game, name:String = "") extends Frame with View with Simple
     if (frames.count(!_.isVisible) >= 1) System.exit(0)
     dispose
   }
-  
+
   def selectPanel(panel:Panel) {
     visible = false
     minimumSize = new Dimension(640, 480)
     contents = panel
     visible = true
   }
-  
+
   def won(setup:Setup, ms:Int) {
     if (game.scores.isInScoreboard(setup, ms)) {
       scorePanel.addScore(setup, ms)
