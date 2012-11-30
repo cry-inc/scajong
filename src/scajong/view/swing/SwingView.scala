@@ -36,7 +36,7 @@ class SwingView(game:Game, name:String = "") extends Frame with View with Simple
     case e: ShowScoresEvent => selectPanel(scoreSelectPanel)
     case e: HintEvent => sendNotification(new HintNotification)
     case e: MoveablesEvent => sendNotification(new MoveablesNotification)
-    case e: WindowClosing => checkForLastFrame
+    case e: WindowClosing => closeView
   }
   
   override def processNotifications(sn:SimpleNotification) {
@@ -58,8 +58,7 @@ class SwingView(game:Game, name:String = "") extends Frame with View with Simple
         swingView.publish(new ShowScoresEvent)
       })
       contents += new MenuItem(Action("Close") {
-        checkForLastFrame
-        dispose
+        closeView
       })
     }
     contents += new Menu("Cheats") {
@@ -80,9 +79,8 @@ class SwingView(game:Game, name:String = "") extends Frame with View with Simple
   else
     selectPanel(setupSelectPanel)
   
-  def checkForLastFrame {
-    val frames = java.awt.Frame.getFrames()
-    if (frames.count(!_.isVisible) >= 1) System.exit(0)
+  def closeView {
+    sendNotification(new CloseViewNotification(this))
     dispose
   }
 

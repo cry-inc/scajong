@@ -6,6 +6,8 @@ import scajong.view._
 
 class Controller(val game:Game) extends SimpleSubscriber {
   
+  var views = List[View]()
+  
   override def processNotifications(sn:SimpleNotification) {
     sn match {
       case n: TileClickedNotification => tileClicked(n.tile)
@@ -22,11 +24,14 @@ class Controller(val game:Game) extends SimpleSubscriber {
   def attachView(view:View) {
     view.addSubscriber(this)
     view.startView
+    views = view :: views
   }
 
   def detachView(view:View) {
     view.stopView
     view.remSubscriber(this)
+    views = views.filter(v => v != view)
+    if (views.length == 0) System.exit(0)
   }
 
   def tileClicked(tile:Tile) {
