@@ -24,50 +24,50 @@ class Scores(scoreFile:String, publisher:SimplePublisher) {
   var scores = List[ScoreEntry]()
   
   loadScores
-	
-	def isInScoreboard(setup:Setup, ms:Int) = getScores(setup).filter(_.ms < ms).size < Scores.PerSetupEntries
-	
-	implicit val scoreOrdering = Ordering.by((s: ScoreEntry) => s.ms)
-	
-	def getScores(setup:Setup) = {
+  
+  def isInScoreboard(setup:Setup, ms:Int) = getScores(setup).filter(_.ms < ms).size < Scores.PerSetupEntries
+
+  implicit val scoreOrdering = Ordering.by((s: ScoreEntry) => s.ms)
+
+  def getScores(setup:Setup) = {
     val sorted = scores.filter(_.setupId == setup.id).sorted
     sorted.take(Scores.PerSetupEntries)
   }
-	
-	def getScorePosition(setup:Setup, ms:Int) = {
-	  if (!isInScoreboard(setup, ms))
-	    -1
+
+  def getScorePosition(setup:Setup, ms:Int) = {
+    if (!isInScoreboard(setup, ms))
+      -1
     else
-    	scores.count(e => e.setupId == setup.id && e.ms < ms)
-	}
-	
-	def addScore(setup:Setup, name:String, ms:Int) {
-	  if (isInScoreboard(setup, ms)) {
-	    val position = getScorePosition(setup, ms)
-	    scores = new ScoreEntry(setup.id, name, ms) :: scores
-	    saveScores
-	    publisher.sendNotification(new NewScoreBoardEntryNotification(setup, position))
-	  }
-	}
-	
-	private def saveScores {
-	  val lines = for (score <- scores) yield {
-	    score.setupId + Scores.separator + score.name + Scores.separator + score.ms + "\n"
-	  }
-	  FileUtil.writeText(scoreFile, lines.mkString)
-	}
-	
-	private def loadScores {
-	  scores = List[ScoreEntry]()
-	  try {
-		  val lines = FileUtil.readLines(scoreFile)
-		  val regex = new Regex("^(.+)" + Scores.separator + "(.+)" + Scores.separator + "(\\d+)$", "setupId", "name", "ms")
-		  lines.foreach(_ match {
-		    case regex(setupId, name, ms) => scores = new ScoreEntry(setupId, name, ms.toInt) :: scores; 
-	      case _ => // Ignore
-		  })
-	  } catch {
-			case e: FileNotFoundException => // Nothing
-	  }
-	}
+      scores.count(e => e.setupId == setup.id && e.ms < ms)
+  }
+
+  def addScore(setup:Setup, name:String, ms:Int) {
+    if (isInScoreboard(setup, ms)) {
+      val position = getScorePosition(setup, ms)
+      scores = new ScoreEntry(setup.id, name, ms) :: scores
+      saveScores
+      publisher.sendNotification(new NewScoreBoardEntryNotification(setup, position))
+    }
+  }
+
+  private def saveScores {
+    val lines = for (score <- scores) yield {
+      score.setupId + Scores.separator + score.name + Scores.separator + score.ms + "\n"
+    }
+    FileUtil.writeText(scoreFile, lines.mkString)
+  }
+
+  private def loadScores {
+    scores = List[ScoreEntry]()
+    try {
+      val lines = FileUtil.readLines(scoreFile)
+      val regex = new Regex("^(.+)" + Scores.separator + "(.+)" + Scores.separator + "(\\d+)$", "setupId", "name", "ms")
+      lines.foreach(_ match {
+        case regex(setupId, name, ms) => scores = new ScoreEntry(setupId, name, ms.toInt) :: scores; 
+        case _ => // Ignore
+      })
+    } catch {
+      case e: FileNotFoundException => // Nothing
+    }
+  }
 }

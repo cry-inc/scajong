@@ -28,7 +28,7 @@ class SwingFieldPanel(val game:Game, name:String) extends Panel with SimpleSubsc
   private val moveablesTimer = new ScalaTimer(5000, "moveables")
   updateSize
   loadImages
-  
+
   listenTo(mouse.clicks)
   listenTo(hintTimer)
   listenTo(moveablesTimer)
@@ -38,15 +38,15 @@ class SwingFieldPanel(val game:Game, name:String) extends Panel with SimpleSubsc
     case e: MouseReleased => mouseReleasedHandler(e)
     case e: TimerEvent => handleTimers(e.name)
   }
-  
+
   def updateSize {
     preferredSize = new Dimension(
       game.width * SwingFieldPanel.CellWidth, 
       game.height * SwingFieldPanel.CellHeight)
   }
-  
+
   def handleTimers(name:String) {
-		if (name == "hint") {
+    if (name == "hint") {
       showHint = false
       hintTimer.stop
     } else if (name == "moveables") {
@@ -55,21 +55,21 @@ class SwingFieldPanel(val game:Game, name:String) extends Panel with SimpleSubsc
     }
     repaint
   }
-  
+
   def enableMoveables {
     publish(new MoveablesEvent)
     moveablesTimer.start
     showMoveable = true
     repaint
   }
-  
+
   def enableHint {
-		publish(new HintEvent)
-		hintTimer.start
-		showHint = true
-		repaint
+    publish(new HintEvent)
+    hintTimer.start
+    showHint = true
+    repaint
   }
-  
+
   override def processNotifications(sn:SimpleNotification) {
     sn match {
       case n:TilesChangedNotification => repaint
@@ -83,13 +83,13 @@ class SwingFieldPanel(val game:Game, name:String) extends Panel with SimpleSubsc
   def loadImages {
     val specials = Array("disabled", "selected", "empty", "tile", "hint")
     for (name <- specials)
-    	images += name -> ImageIO.read(new File("tiles/" + name + ".png"))
+      images += name -> ImageIO.read(new File("tiles/" + name + ".png"))
   }
-  
+
   def loadTileImage(name:String) {
     images += name -> ImageIO.read(new File("tiles/" + name + ".png"))
   }
-  
+
   def findTile(p:swing.Point) : Tile = {
     val tiles = game.sortedTiles.reverse
     for (tile <- tiles) {
@@ -102,19 +102,19 @@ class SwingFieldPanel(val game:Game, name:String) extends Panel with SimpleSubsc
     }  
     return null
   }
-  
+
   def mouseReleasedHandler(e:event.MouseReleased) {
     if (e.peer.getButton == MouseEvent.BUTTON1) {
       val tile = findTile(e.point)
-	    if (tile != null)
-	      publish(new TileClickedEvent(tile))
+      if (tile != null)
+        publish(new TileClickedEvent(tile))
     } else if (e.peer.getButton == MouseEvent.BUTTON2) {
       enableMoveables
     } else if (e.peer.getButton == MouseEvent.BUTTON3) {
-    	enableHint
+      enableHint
     }
   }
-  
+
   override def paintComponent(g: Graphics2D) : Unit = {
     g.setColor(new Color(255, 255, 255))
     g.fillRect(0, 0, preferredSize.width, preferredSize.height)
@@ -122,12 +122,12 @@ class SwingFieldPanel(val game:Game, name:String) extends Panel with SimpleSubsc
     var hint:TilePair = if (showHint) game.hint else null
     for (tile <- tiles) {
       if (hint != null)
-      	drawTile(g, tile, (hint.tile1 == tile || hint.tile2 == tile))
+        drawTile(g, tile, (hint.tile1 == tile || hint.tile2 == tile))
       else
         drawTile(g, tile, false)
     }
   }
-  
+
   def drawTile(g:Graphics2D, tile:Tile, isHint:Boolean) {
     if (!images.contains(tile.tileType.name))
       loadTileImage(tile.tileType.name)
@@ -135,14 +135,14 @@ class SwingFieldPanel(val game:Game, name:String) extends Panel with SimpleSubsc
     val y = tile.y * SwingFieldPanel.CellHeight - 5 - 5 * tile.z
     g.drawImage(images("tile"), x, y, null)
     g.drawImage(images(tile.tileType.name), x, y, null)
-  	if (showMoveable && !game.canMove(tile)) {
-  	  g.drawImage(images("disabled"), x, y, null)
-  	} 
-  	if (isHint) {
-  	  g.drawImage(images("hint"), x, y, null)
-  	}
-  	if (tile == game.selected) {
-  	  g.drawImage(images("selected"), x, y, null)
-  	}
+    if (showMoveable && !game.canMove(tile)) {
+      g.drawImage(images("disabled"), x, y, null)
+    } 
+    if (isHint) {
+      g.drawImage(images("hint"), x, y, null)
+    }
+    if (tile == game.selected) {
+      g.drawImage(images("selected"), x, y, null)
+    }
   }
 }

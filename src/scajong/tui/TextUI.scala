@@ -12,24 +12,25 @@ object TextUI {
 }
 
 class TextUI(val game:Game) {
-  
+
+  // TODO: Add scores and setup selection
   printField()
   run
-  
+
   def playTiles(a:Int, b:Int) {
-		if (!game.tiles.contains(a))
-			println("Could not find tile with id " + a + "!")
-		else if (!game.tiles.contains(b))
-		  println("Could not find tile with id " + b + "!")
-		else {
-		  if (game.play(game.tiles(a), game.tiles(b))) {
-		    println("Removed the two tiles!")
-		    printField()
-		} else
-		  println("Could not remove the two tiles!")
-		}
+    if (!game.tiles.contains(a))
+      println("Could not find tile with id " + a + "!")
+    else if (!game.tiles.contains(b))
+      println("Could not find tile with id " + b + "!")
+    else {
+      if (game.play(game.tiles(a), game.tiles(b))) {
+        println("Removed the two tiles!")
+        printField()
+    } else
+      println("Could not remove the two tiles!")
+    }
   }
-  
+
   def run {
     while (true) {
       val command = readLine
@@ -43,14 +44,14 @@ class TextUI(val game:Game) {
         case s:String => {
           val regex = new Regex("^(\\d+) (\\d+)$", "a", "b")
           regex.findFirstIn(s) match {
-						case Some(regex(a, b)) => playTiles(a.toInt, b.toInt)
-						case None => println("Unknown command: " + s)
+            case Some(regex(a, b)) => playTiles(a.toInt, b.toInt)
+            case None => println("Unknown command: " + s)
           }
         }
       }
     }
   }
-  
+
   def printHelp {
     println("help: Show this help")
     println("q: Quit the game")
@@ -58,13 +59,13 @@ class TextUI(val game:Game) {
     println("h: Show hint")
     println("m: Show moveable tiles")
     println("s: Scramble tiles")
-		println("<Tile-Id> <Tile-Id>: Select the two tiles for removing")
-		println("|-----|  Legend:")
-		println("|aa bb|  aa = Tile Type")
-		println("|ccccc|  bb = Height")
-		println("|-----|  ccccc = Tile Id")
+    println("<Tile-Id> <Tile-Id>: Select the two tiles for removing")
+    println("|-----|  Legend:")
+    println("|aa bb|  aa = Tile Type")
+    println("|ccccc|  bb = Height")
+    println("|-----|  ccccc = Tile Id")
   }
-  
+
   def splitTileIdIntoStrings(id:Int) = {
     val ifull = id.toString
     var i1:String = "  "
@@ -89,17 +90,18 @@ class TextUI(val game:Game) {
     }
     (i1,i2,i3)
   }
-  
+
   def printHint {
     val hint = game.hint
     println(game.calcTileIndex(hint.tile1) + " and " + game.calcTileIndex(hint.tile2))
   }
-  
+
   def printMoveables {
     printField(true)
   }
-  
+
   def printField(moveablesOnly : Boolean = false) {
+    // TODO: Split into smaller methods
     val line = "-" * (game.width * 3 + 2)
     println(line)
     var leftTile:Tile = null
@@ -127,20 +129,20 @@ class TextUI(val game:Game) {
         else
           print("|")
         
-	    	if ((tile.x == x || tile.x + Tile.Width-1 == x) && (tile.y == y || tile.y + Tile.Height - 1 == y))
-	    	  print("--")
-	    	else if (moveablesOnly && !moveable)
+        if ((tile.x == x || tile.x + Tile.Width-1 == x) && (tile.y == y || tile.y + Tile.Height - 1 == y))
+          print("--")
+        else if (moveablesOnly && !moveable)
           print("  ")
-	    	else if (tile.y == y-1 && tile.x == x-1)
-	    	  print("%2d".format(tile.z))
-	    	else if (tile.y == y-1 && tile.x == x)
-	    	  print("%2d".format(tile.tileType.id))
-	    	else if (tile.y == y-2 && tile.x == x)
-	    	  print(i1)
-	    	else if (tile.y == y-2 && tile.x == x-1)
-	    	  print(i3)
-	    	else
-	    	  print("  ")
+        else if (tile.y == y-1 && tile.x == x-1)
+          print("%2d".format(tile.z))
+        else if (tile.y == y-1 && tile.x == x)
+          print("%2d".format(tile.tileType.id))
+        else if (tile.y == y-2 && tile.x == x)
+          print(i1)
+        else if (tile.y == y-2 && tile.x == x-1)
+          print(i3)
+        else
+          print("  ")
       }
       
       if (x == game.width - 1) {

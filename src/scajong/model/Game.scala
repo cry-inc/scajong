@@ -24,35 +24,35 @@ class Game(setupsDir:String, tileFile:String, generator:Generator) extends Simpl
   private var penalty = 0
 
   def selected = _selected
-  
+
   def selected_=(newSelected:Tile) {
     _selected = newSelected;
     sendNotification(new SelectedTileNotification(_selected))
   }
-  
+
   def calcTileIndex(tile:Tile) : Int = {
     calcTileIndex(tile.x, tile.y, tile.z)
   }
-  
+
   def calcTileIndex(x:Int, y:Int, z:Int) = {
     z * width * height + y * width + x
   }
-  
+
   def addPenalty(ms:Int) {
     if (ms > 0) penalty += ms
   }
-  
+
   def +=(tile:Tile) {
     tiles += (calcTileIndex(tile) -> tile)
     if (sendTileChangedEvent) {
-	    sendNotification(new TilesChangedNotification)
+      sendNotification(new TilesChangedNotification)
     }
   }
-  
+
   def -=(tile:Tile) {
     tiles -= calcTileIndex(tile)
     if (sendTileChangedEvent) {
-	    sendNotification(new TilesChangedNotification)
+      sendNotification(new TilesChangedNotification)
     }
   }
 
@@ -61,7 +61,7 @@ class Game(setupsDir:String, tileFile:String, generator:Generator) extends Simpl
     implicit val tileOrdering = Ordering.by((t: Tile) => (t.z, t.y, t.x))
     list.sorted.toArray
   }
-  
+
   def possibleTileIndices(x:Float, y:Float, z:Float) : IndexedSeq[Int] = {
     val ix = math.floor(x).toInt
     val iy = math.floor(y).toInt
@@ -76,20 +76,20 @@ class Game(setupsDir:String, tileFile:String, generator:Generator) extends Simpl
     val foundTiles = tiles.filter(p => indices.contains(p._1) && p._2.isInside(x, y, z))
     if (foundTiles.nonEmpty) foundTiles.last._2 else null
   }
-  
+
   def topmostTile(x:Int, y:Int) : Tile = {
     val stack = tiles.filter(p => p._2.isInside(x, y)).map(_._2).toList
     if (stack.nonEmpty) stack.sortWith((a,b) => a.z < b.z).last else null
   }
-  
+
   private def canMove(tile:Tile, xd:Int, yd:Int, zd:Int) : Boolean = {
-  	val z = tile.z + zd
-  	tile.testPoints.forall(point => {
-  	  val x = point.x + xd
+    val z = tile.z + zd
+    tile.testPoints.forall(point => {
+      val x = point.x + xd
       val y = point.y + yd
       val found = findTile(x, y, z)
       (found == null || tile == found)
-  	}) 
+    }) 
   }
 
   private def canMoveUp(tile:Tile) = canMove(tile, 0, 0, 1)
@@ -113,18 +113,18 @@ class Game(setupsDir:String, tileFile:String, generator:Generator) extends Simpl
     else if (!canMove(tile1) || !canMove(tile2))
       false
     else {
-  	  -=(tile1)
-  	  -=(tile2);
-		  if (tiles.size == 0) {
-		    val time = (System.currentTimeMillis - startTime).toInt + penalty
-		    val inScoreBoard = scores.isInScoreboard(currentSetup, time)
-		   	sendNotification(new WonNotification(currentSetup, time, inScoreBoard))
-		  } else if (!nextMovePossible)
-			  sendNotification(new NoFurtherMovesNotification)
-		  true
-	  }
+      -=(tile1)
+      -=(tile2);
+      if (tiles.size == 0) {
+        val time = (System.currentTimeMillis - startTime).toInt + penalty
+        val inScoreBoard = scores.isInScoreboard(currentSetup, time)
+         sendNotification(new WonNotification(currentSetup, time, inScoreBoard))
+      } else if (!nextMovePossible)
+        sendNotification(new NoFurtherMovesNotification)
+      true
+    }
   }
-  
+
   def hint : TilePair = {
     // TODO: rewrite without return
     var moveableTiles = tiles.map(_._2).filter(canMove(_))
@@ -134,9 +134,9 @@ class Game(setupsDir:String, tileFile:String, generator:Generator) extends Simpl
     }
     null
   }
-  
+
   def nextMovePossible : Boolean = hint != null
-  
+
   def setupById(setupId:String) = {
     val filtered = setups.filter(_.id == setupId)
     if (filtered.length == 1)
@@ -144,14 +144,14 @@ class Game(setupsDir:String, tileFile:String, generator:Generator) extends Simpl
     else
       null
   }
-  
+
   def scramble {
     sendTileChangedEvent = false
     generator.scramble(this)
     sendTileChangedEvent = true
     sendNotification(new ScrambledNotification)
   }
-  
+
   def startNewGame(setup:Setup) {
     sendTileChangedEvent = false
     generator.generate(this, setup.path)

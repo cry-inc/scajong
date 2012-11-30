@@ -10,7 +10,7 @@ object Setup {
     val filteredFileNames = fileNames.filter(_.endsWith(".txt"))
     filteredFileNames.map(Setup(_)).toList
   }
-  
+
   def apply(setupFile:String) = {
     val lines = FileUtil.readLines(setupFile)
     new Setup(lines(0), lines(1), setupFile)

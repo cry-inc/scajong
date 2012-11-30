@@ -23,12 +23,12 @@ class Controller(val game:Game) extends SimpleSubscriber {
     view.addSubscriber(this)
     view.startView
   }
-  
+
   def detachView(view:View) {
     view.stopView
     view.remSubscriber(this)
   }
-  
+
   def tileClicked(tile:Tile) {
     if (game.canMove(tile)) {
       if (game.selected != null && game.selected.tileType == tile.tileType) {
@@ -39,7 +39,7 @@ class Controller(val game:Game) extends SimpleSubscriber {
       }
     }
   }
-  
+
   def addScore(setup:Setup, playerName:String, ms:Int) {
     game.scores.addScore(setup, playerName, ms)
   }

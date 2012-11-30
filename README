@@ -4,8 +4,8 @@ A simple Mahjong solitaire game written in the programming language Scala.
 The game does not use the typical Mahjong tiles, instead it uses the logos
 of various Open Source related projects and organisations. Can you name them?
 
-This game was written for a Scala course called at the University of Applied
-Sciences in Constance in the fall 2012.
+This game was written for a Scala course at the University of Applied
+Sciences in Constance in the fall of 2012.
 
 Building:
 
@@ -17,12 +17,12 @@ the building and packaging. The result should be a scajong.jar file in the
 project folder.
 
 If you use Eclipse, you have to download the required jar files of all the
-refrenced library and put them in the directory of the project. You can see
+refrenced librarys and put them in the directory of the project. You can see
 the required libraries by opening the included .classpath file in an editor!
 
 Testing:
 
-We supply tests for most of our classes except the Views. They are located in
+We supply tests for most of our classes except the views. They are located in
 the test folder. You can run them either over Eclipse with JUnit or with sbt.
 Open a command line in the project dir and run "sbt test" to execute all tests.
 

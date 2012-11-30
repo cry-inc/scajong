@@ -7,13 +7,13 @@ class SimplePubSubSpec extends SpecificationWithJUnit {
   "A SimpleSubscriber" should {
 
     "can process notifications" in {
-    	val subscriber = new SimpleSubscriber {
-    		var notificated = false
-    				def processNotifications(notification:SimpleNotification) {
-    			notificated = true
-    		}
-    	}
-    	
+      val subscriber = new SimpleSubscriber {
+        var notificated = false
+            def processNotifications(notification:SimpleNotification) {
+          notificated = true
+        }
+      }
+      
       subscriber.notificated must beFalse
       subscriber.processNotifications(new SimpleNotification)
       subscriber.notificated must beTrue
@@ -23,11 +23,11 @@ class SimplePubSubSpec extends SpecificationWithJUnit {
   "A SimplePublisher" should {    
     
     "can attach and remove subscribers" in {
-	    val publisher = new SimplePublisher {}
-	    val subscriber = new SimpleSubscriber {
-	      def processNotifications(notification:SimpleNotification) {}
-	    }
-	    
+      val publisher = new SimplePublisher {}
+      val subscriber = new SimpleSubscriber {
+        def processNotifications(notification:SimpleNotification) {}
+      }
+      
       publisher.addSubscriber(subscriber)
       publisher.subscribers must have size(1)
       publisher.remSubscriber(subscriber)
@@ -35,14 +35,14 @@ class SimplePubSubSpec extends SpecificationWithJUnit {
     }
     
     "can notifiy subscribers" in {
-    	val publisher = new SimplePublisher {}
-    	val subscriber = new SimpleSubscriber {
-    		var notificated = false
-    				def processNotifications(notification:SimpleNotification) {
-    			notificated = true
-    		}
-    	}
-    	
+      val publisher = new SimplePublisher {}
+      val subscriber = new SimpleSubscriber {
+        var notificated = false
+            def processNotifications(notification:SimpleNotification) {
+          notificated = true
+        }
+      }
+      
       subscriber.notificated must beFalse
       publisher.addSubscriber(subscriber)
       publisher.sendNotification(new SimpleNotification)
