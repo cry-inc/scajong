@@ -39,3 +39,5 @@ mergeStrategy in assembly <<= (mergeStrategy in assembly) { (old) =>
 
 resolvers ++= Seq("snapshots" at "http://oss.sonatype.org/content/repositories/snapshots",
                   "releases"  at "http://oss.sonatype.org/content/repositories/releases")
+
+seq(ScctPlugin.instrumentSettings : _*)
