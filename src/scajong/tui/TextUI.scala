@@ -6,15 +6,14 @@ import util.matching.Regex
 object TextUI {
   def main(args: Array[String]) {
     val game = new Game("setups/", "tiles.txt", new ReverseGenerator)
-    game.startNewGame(game.setups(0))
+    game.startNewGame(game.setupById("test"))
     new TextUI(game)
   }
 }
 
 class TextUI(val game:Game) {
 
-  // TODO: Add scores and setup selection
-  printField()
+  printField(false)
   run
 
   def playTiles(a:Int, b:Int) {
@@ -24,30 +23,52 @@ class TextUI(val game:Game) {
       println("Could not find tile with id " + b + "!")
     else {
       if (game.play(game.tiles(a), game.tiles(b))) {
-        println("Removed the two tiles!")
-        printField()
+        println("Removed two tiles!")
+        if (game.tiles.size > 0) printField(false)
+        else println("You won by clearing the field!")
     } else
-      println("Could not remove the two tiles!")
+      println("Could not remove the tiles!")
     }
+  }
+  
+  def startGame(setupId:String) {
+    val setup = game.setupById(setupId)
+    if (setup != null) {
+      game.startNewGame(setup)
+      printField(false)
+    } else println("Invalid setup id!")
+  }
+  
+  def showScores(setupId:String) {
+    val setup = game.setupById(setupId)
+    if (setup != null) {
+      val scores = game.scores.getScores(setup)
+      var i = 1
+      for (score <- scores) {
+        val time = (score.ms/1000.0)
+        println("Pos: " + i + ", Seconds: " + time + ", Name: " + score.name)
+        i += 1
+      }
+    } else println("Invalid setup id!")
   }
 
   def run {
+    val playRegex = new Regex("^(\\d+) (\\d+)$", "a", "b")
+    val startRegex = new Regex("^start ([a-z]+?)$", "setupId")
+    val scoresRegex = new Regex("^scores ([a-z]+?)$", "setupId")
     while (true) {
-      val command = readLine
-      command match {
+      readLine match {
         case "help" => printHelp
-        case "p" => printField()
+        case "p" => printField(false)
         case "q" => return
         case "h" => printHint
         case "m" => printMoveables
-        case "s" => game.scramble; printField()
-        case s:String => {
-          val regex = new Regex("^(\\d+) (\\d+)$", "a", "b")
-          regex.findFirstIn(s) match {
-            case Some(regex(a, b)) => playTiles(a.toInt, b.toInt)
-            case None => println("Unknown command: " + s)
-          }
-        }
+        case "scramble" => game.scramble; printField(false)
+        case "setups" => printSetups
+        case playRegex(a, b) => playTiles(a.toInt, b.toInt)
+        case startRegex(setupId) => startGame(setupId)
+        case scoresRegex(setupId) => showScores(setupId)
+        case _ => println("Unknown command!")
       }
     }
   }
@@ -55,10 +76,13 @@ class TextUI(val game:Game) {
   def printHelp {
     println("help: Show this help")
     println("q: Quit the game")
-    println("f: Show game field with the tiles")
+    println("p: Print game field with tiles")
     println("h: Show hint")
-    println("m: Show moveable tiles")
-    println("s: Scramble tiles")
+    println("m: Show all moveable tiles")
+    println("setups: List all available setups with name and id")
+    println("scramble: Scramble tiles and print field")
+    println("start <setupid>: Start a new game")
+    println("scores <setupid>: Show scoreboard for a setup")
     println("<Tile-Id> <Tile-Id>: Select the two tiles for removing")
     println("|-----|  Legend:")
     println("|aa bb|  aa = Tile Type")
@@ -93,14 +117,22 @@ class TextUI(val game:Game) {
 
   def printHint {
     val hint = game.hint
-    println(game.calcTileIndex(hint.tile1) + " and " + game.calcTileIndex(hint.tile2))
+    if (hint != null) {
+      println(game.calcTileIndex(hint.tile1) + " and " + game.calcTileIndex(hint.tile2))
+    }
   }
 
   def printMoveables {
     printField(true)
   }
-
-  def printField(moveablesOnly : Boolean = false) {
+  
+  def printSetups {
+    for (setup <- game.setups) {
+      println("Id: " + setup.id + ", Name: " + setup.name)
+    }
+  }
+  
+  def printField(moveablesOnly : Boolean) {
     // TODO: Split into smaller methods
     val line = "-" * (game.width * 3 + 2)
     println(line)
