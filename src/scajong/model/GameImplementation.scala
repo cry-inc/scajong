@@ -4,8 +4,10 @@ import scajong.util._
 import io.Source
 
 object GameImplementation {
-  def create : GameImplementation = {
-    new GameImplementation("setups/", "tiles.txt", new ReverseGenerator)
+  def create : Game = {
+    // TODO: construct setups and tiles in seperate steps
+    val generator:Generator = new ReverseGenerator
+    new GameImplementation("setups/", "tiles.txt", generator)
   }
 }
 
@@ -78,7 +80,7 @@ class GameImplementation private (setupsDir:String, tileFile:String, generator:G
 
   def topmostTile(x:Int, y:Int) : Tile = {
     val stack = tiles.filter(p => p._2.isInside(x, y)).map(_._2).toList
-    if (stack.nonEmpty) stack.sortWith((a,b) => a.z < b.z).last else null
+    if (stack.nonEmpty) stack.sortWith(_.z < _.z).last else null
   }
 
   private def canMove(tile:Tile, xd:Int, yd:Int, zd:Int) : Boolean = {
