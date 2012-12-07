@@ -12,6 +12,6 @@ class AddScoreNotification(val setup:Setup, val playerName:String, val ms:Int) e
 class CloseViewNotification(val view:View) extends SimpleNotification
 
 trait View extends SimplePublisher {
-  def startView {}
-  def stopView {}
+  def startView(game:Game) {}
+  def stopView(game:Game) {}
 }

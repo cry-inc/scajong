@@ -165,11 +165,11 @@ class JettyView(game:Game, port:Int = 8080) extends AbstractHandler with View wi
       response.getWriter().println(stringData)
   }
 
-  override def startView {
+  override def startView(game:Game) {
     server.start
   }
 
-  override def stopView {
+  override def stopView(game:Game) {
     server.stop
     server.join
   }
