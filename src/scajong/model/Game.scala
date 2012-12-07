@@ -31,13 +31,13 @@ trait Game extends SimplePublisher {
   def setupById(id:String) : Setup
   
   // Game logic
-  def play(tile1:Tile, tile2:Tile) : Boolean
+  def play(tile1:Tile, tile2:Tile) : Boolean // can send TilesChanged, Won or NoFurtherMoves notifications
   def hint : TilePair
-  def startNewGame(setup:Setup)
-  def scramble
+  def startNewGame(setup:Setup) // sends CreatedGame notification
+  def scramble // sends Scrambled notification
   def addPenalty(ms:Int)
   def selected:Tile
-  def selected_=(tile:Tile)
+  def selected_=(tile:Tile) // sends SelectedTile notification
   
   // Tile logic
   def canMove(tile:Tile) : Boolean
