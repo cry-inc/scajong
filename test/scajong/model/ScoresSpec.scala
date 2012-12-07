@@ -60,6 +60,7 @@ class ScoresSpec extends SpecificationWithJUnit {
     "can calculate the position for a time" in {
       scores.getScorePosition(setup1, 10000) must be_==(0)
       scores.getScorePosition(setup1, 13000) must be_==(1)
+      scores.getScorePosition(setup2, 200000) must be_==(-1)
     }
     
     "can add and save new scores" in {

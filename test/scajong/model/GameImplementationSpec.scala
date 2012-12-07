@@ -10,13 +10,16 @@ class FakeSubscriber extends SimpleSubscriber {
   var scrambled = false
   var won = false
   var selected = false
+  var noMoves = false
+  var wonMs = 0
   def processNotifications(sn: SimpleNotification) {
     sn match {
       case n:TilesChangedNotification => tilesChanged = true
       case n:CreatedGameNotification => started = true
       case n:ScrambledNotification => scrambled = true
-      case n:WonNotification => won = true
+      case n:WonNotification => wonMs = n.ms; won = true
       case n:SelectedTileNotification => selected = true
+      case n:NoFurtherMovesNotification => noMoves = true
     }
   }
 }
@@ -26,8 +29,8 @@ class GameImplementationSpec extends SpecificationWithJUnit {
   "A GameImplementation" should {
     
     def createTestObjects : (Game, Setup, FakeSubscriber) = {
-      val game = GameImplementation.create
-      val testSetup = game.setups.filter(_.id == "test")(0)
+      val game:Game = GameImplementation.create
+      val testSetup = game.setupById("test")
       val subscriber = new FakeSubscriber
       game.addSubscriber(subscriber)
       (game, testSetup, subscriber)
@@ -49,7 +52,7 @@ class GameImplementationSpec extends SpecificationWithJUnit {
       game.startNewGame(testSetup)
       subscriber.started must beTrue
       game.tiles must have size(4)
-      game.selected must be_==(null)
+      game.selected must beNull
     }
     
     "can select tiles" in {
@@ -135,10 +138,23 @@ class GameImplementationSpec extends SpecificationWithJUnit {
     "can provide a hint" in {
       val (game, testSetup, subscriber) = createTestObjects
       game.startNewGame(testSetup)
-      val hint = game.hint
+      
+      // first pair
+      var hint = game.hint
       hint.tile1.tileType must be_==(hint.tile2.tileType)
       game.canMove(hint.tile1) must beTrue
       game.canMove(hint.tile2) must beTrue
+      game.play(hint.tile1, hint.tile2) must beTrue
+      
+      // seconds and last pair
+      hint = game.hint
+      hint.tile1.tileType must be_==(hint.tile2.tileType)
+      game.canMove(hint.tile1) must beTrue
+      game.canMove(hint.tile2) must beTrue
+      game.play(hint.tile1, hint.tile2) must beTrue
+      
+      hint = game.hint
+      hint must beNull
     }
     
     "can scramble the game" in {
@@ -163,6 +179,49 @@ class GameImplementationSpec extends SpecificationWithJUnit {
     "can get a setup by id" in {
       val (game, testSetup, subscriber) = createTestObjects
       game.setupById("test") must be_==(testSetup)
+      game.setupById("doesnotexist") must beNull
+    }
+    
+    "can add a penalty" in {
+      val (game, testSetup, subscriber) = createTestObjects
+      val penalty = 15000
+      game.startNewGame(testSetup)
+      subscriber.wonMs must be_==(0)
+      game.addPenalty(penalty)
+      while (game.tiles.size > 0) {
+        val hint = game.hint
+        game.play(hint.tile1, hint.tile2)
+      }
+      subscriber.wonMs must be_>=(penalty)
+    }
+    
+    "can find the topmost tile" in {
+      val (game, testSetup, subscriber) = createTestObjects
+      game.startNewGame(testSetup)
+      game.topmostTile(0, 0) must beNull
+      val (_, tile) = game.tiles.head
+      val tileOnTop = new Tile(tile.x, tile.y, tile.z + Tile.Depth, null)
+      game.topmostTile(tile.x, tile.y) must be_==(tile)
+      game += tileOnTop
+      game.topmostTile(tile.x, tile.y) must be_==(tileOnTop)
+    }
+    
+    "can detect invalid plays and dead ends" in {
+      val (game, testSetup, subscriber) = createTestObjects
+      subscriber.noMoves must beFalse
+      game.startNewGame(testSetup)
+      val unusedType = game.tileTypes.filter(t => game.tiles.forall(p => p._2.tileType != t)).head;
+      val tile = game.tiles.head._2
+      tile.tileType = unusedType;
+      game.play(tile, tile) must beFalse
+      game.play(tile, game.tiles.last._2) must beFalse
+      val hint = game.hint
+      val onTopTile =  new Tile(hint.tile1.x, hint.tile1.y, hint.tile1.z + Tile.Depth, null)
+      game += onTopTile
+      game.play(hint.tile1, hint.tile2) must beFalse
+      game -= onTopTile
+      game.play(hint.tile1, hint.tile2) must beTrue
+      subscriber.noMoves must beTrue
     }
   }
 }
