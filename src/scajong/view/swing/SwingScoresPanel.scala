@@ -55,9 +55,12 @@ class SwingScoresPanel(scores:Scores) extends GridPanel(1, 1) {
         } else if (i == pos) {
           contents += textField
           contents += new Label((ms / 1000.0).toString)
-        } else {
+        } else if (scoreList.size >= i) {
           contents += new Label(scoreList(i-1).name)
           contents += new Label((scoreList(i-1).ms / 1000.0).toString)
+        } else {
+          contents += new Label()
+          contents += new Label()
         }
       }
       visible = true
