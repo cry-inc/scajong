@@ -21,12 +21,12 @@ class FakeSubscriber extends SimpleSubscriber {
   }
 }
 
-class GameSpec extends SpecificationWithJUnit {
+class GameImplementationSpec extends SpecificationWithJUnit {
   
-  "A Game" should {
+  "A GameImplementation" should {
     
     def createTestObjects : (Game, Setup, FakeSubscriber) = {
-      val game = new Game("setups/", "tiles.txt", new ReverseGenerator)
+      val game = GameImplementation.create
       val testSetup = game.setups.filter(_.id == "test")(0)
       val subscriber = new FakeSubscriber
       game.addSubscriber(subscriber)
@@ -163,12 +163,6 @@ class GameSpec extends SpecificationWithJUnit {
     "can get a setup by id" in {
       val (game, testSetup, subscriber) = createTestObjects
       game.setupById("test") must be_==(testSetup)
-    }
-    
-    "can find out if there is a possible move" in {
-      val (game, testSetup, subscriber) = createTestObjects
-      game.startNewGame(testSetup)
-      game.nextMovePossible must beTrue
     }
   }
 }

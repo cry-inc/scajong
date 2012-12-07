@@ -5,7 +5,7 @@ import util.matching.Regex
 
 object TextUI {
   def main(args: Array[String]) {
-    val game = new Game("setups/", "tiles.txt", new ReverseGenerator)
+    val game = GameImplementation.create
     game.startNewGame(game.setupById("test"))
     new TextUI(game)
   }
