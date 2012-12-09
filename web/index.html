@@ -13,46 +13,46 @@
 
             var showHint = false;
             var showMoveables = false;
-			var lastId = 0;
-			var tileCounter = 0;
-			var numberOfAllTiles = -1;
+            var lastId = 0;
+            var tileCounter = 0;
+            var numberOfAllTiles = -1;
             var scorePosition = -1;
-			var tileImages = new Array();
-			var field;
-			var setups;
-			
-			function selectPanel(name) {
-				var panels = new Array('fieldPanel', 'setupsPanel', 'scoresPanel', 'scorePanel', 'addScore');
-				for (var i=0; i<panels.length; i++) {
-					var div = document.getElementById(panels[i]);
-					if (panels[i] == name) {
-						div.style.display = "inline";
-					} else {
-						div.style.display = "none";
-					}
-				}
-			}
-			
-			function checkNotifications() {
-				$.getJSON('/notifications.json?wait='+lastId, processNotifications);
-			}
-			
-			function processNotifications(json) {
-				$.each(json['notifications'], function(i, item) {
-					if (item.id > lastId) {
-						//console.log("not: (" + item.id + ", " + item.name + ", " + item.param1 + ", " + item.param2 + ")");
-						switch(item.name) {
-							case 'NewGame':
+            var tileImages = new Array();
+            var field;
+            var setups;
+            
+            function selectPanel(name) {
+                var panels = new Array('fieldPanel', 'setupsPanel', 'scoresPanel', 'scorePanel', 'addScore');
+                for (var i=0; i<panels.length; i++) {
+                    var div = document.getElementById(panels[i]);
+                    if (panels[i] == name) {
+                        div.style.display = "inline";
+                    } else {
+                        div.style.display = "none";
+                    }
+                }
+            }
+            
+            function checkNotifications() {
+                $.getJSON('/notifications.json?wait='+lastId, processNotifications);
+            }
+            
+            function processNotifications(json) {
+                $.each(json['notifications'], function(i, item) {
+                    if (item.id > lastId) {
+                        //console.log("not: (" + item.id + ", " + item.name + ", " + item.param1 + ", " + item.param2 + ")");
+                        switch(item.name) {
+                            case 'NewGame':
                                 selectPanel('fieldPanel');
                                 updateField();
-								break;
+                                break;
                             case 'UpdateField':
-								updateField();
-								break;
-							case 'ShowScore':
-								selectPanel('scorePanel');
+                                updateField();
+                                break;
+                            case 'ShowScore':
+                                selectPanel('scorePanel');
                                 loadScores(item.param1, item.param2);
-								break;
+                                break;
                             case 'AddScore':
                                 $('#addScoreButton').removeAttr('disabled');
                                 selectPanel('addScore');
@@ -62,24 +62,24 @@
                                 var result = confirm('No further moves possible. Scramble?');
                                 if (result == true) $.getJSON('/action/scramble', processAction);
                                 break;
-						}
-						lastId = item.id;
-					}
+                        }
+                        lastId = item.id;
+                    }
                 });
-				setTimeout(checkNotifications, 100);
-			}
-			
+                setTimeout(checkNotifications, 100);
+            }
+            
             function updateField() {
                 $.getJSON('/field.json', processFieldData);
             }
             
             function processFieldData(json) {
                 field = json;
-				redraw();
+                redraw();
             }
-			
-			function redraw() {
-				var canvas = document.getElementById('field');
+            
+            function redraw() {
+                var canvas = document.getElementById('field');
                 canvas.width = field['fieldwidth'] * CellWidth;
                 canvas.height = field['fieldheight'] * CellHeight;
                 var context = canvas.getContext('2d');
@@ -88,7 +88,7 @@
                 $.each(field['tiles'], function(i, item) {
                     drawTile(context, item);
                 });
-			}
+            }
             
             function drawTile(context, tile) {
                 var x = tile.x * CellWidth - TileOffset;
@@ -129,21 +129,21 @@
                     loadSetups();
                 }
             }
-			
-			function loadSetups() {
-				$.getJSON('/setups.json', processSetupsData);
-			}
             
-			function processSetupsData(json) {
-				setups = json.setups;
-				checkNotifications();
-			}
-			
+            function loadSetups() {
+                $.getJSON('/setups.json', processSetupsData);
+            }
+            
+            function processSetupsData(json) {
+                setups = json.setups;
+                checkNotifications();
+            }
+            
             function loadScores(setup, position) {
                 if (position != "") scorePosition = parseInt(position);
                 else scorePosition = -1;
                 $.getJSON('/scores/' + setup + '.json', processScoresData);
-			}
+            }
             
             function processScoresData(json) {
                 var htmlText = '<table class="scoreTable"><tr><th colspan="3" class="nl">'
@@ -163,12 +163,12 @@
             }
             
             function processAction(json) {
-				//alert('done');
+                //alert('done');
             }
             
             function moveablesClick(e) {
                 showMoveables = true
-				redraw();
+                redraw();
                 setTimeout(function() { showMoveables = false; redraw(); }, 5000);
                 var url = '/action/moveables';
                 $.getJSON(url, processAction);
@@ -176,88 +176,88 @@
             
             function hintClick(e) {
                 showHint = true
-				redraw();
+                redraw();
                 setTimeout(function() { showHint = false; redraw(); }, 1000);
                 var url = '/action/hint';
                 $.getJSON(url, processAction);
             }
             
-			function predictNewModel(tile) {
-				var oldTileIndex = -1;
-				var newTileIndex = -1;
-				for (var i = 0; i < field.tiles.length; i++) {
-					if (field.tiles[i].selected == true) {
-						oldTileIndex = i;
-						field.tiles[i].selected = false;
-					}
-				}
-				for (var i = 0; i < field.tiles.length; i++) {
-					if (tile.x == field.tiles[i].x && 
-							tile.y == field.tiles[i].y &&
-							tile.z == field.tiles[i].z &&
-						field.tiles[i].moveable == true) {
-						newTileIndex = i;
-						field.tiles[i].selected = true;
-					}
-				}
-				if (oldTileIndex != -1 && newTileIndex != -1 && oldTileIndex != newTileIndex &&
-						field.tiles[oldTileIndex].type == field.tiles[newTileIndex].type) {
-					if (oldTileIndex > newTileIndex) {
-						field.tiles.splice(oldTileIndex, 1);
-						field.tiles.splice(newTileIndex, 1);
-					} else {
-						field.tiles.splice(newTileIndex, 1);
-						field.tiles.splice(oldTileIndex, 1);
-					}
-				}
-				redraw();
-			}
-			
+            function predictNewModel(tile) {
+                var oldTileIndex = -1;
+                var newTileIndex = -1;
+                for (var i = 0; i < field.tiles.length; i++) {
+                    if (field.tiles[i].selected == true) {
+                        oldTileIndex = i;
+                        field.tiles[i].selected = false;
+                    }
+                }
+                for (var i = 0; i < field.tiles.length; i++) {
+                    if (tile.x == field.tiles[i].x && 
+                            tile.y == field.tiles[i].y &&
+                            tile.z == field.tiles[i].z &&
+                        field.tiles[i].moveable == true) {
+                        newTileIndex = i;
+                        field.tiles[i].selected = true;
+                    }
+                }
+                if (oldTileIndex != -1 && newTileIndex != -1 && oldTileIndex != newTileIndex &&
+                        field.tiles[oldTileIndex].type == field.tiles[newTileIndex].type) {
+                    if (oldTileIndex > newTileIndex) {
+                        field.tiles.splice(oldTileIndex, 1);
+                        field.tiles.splice(newTileIndex, 1);
+                    } else {
+                        field.tiles.splice(newTileIndex, 1);
+                        field.tiles.splice(oldTileIndex, 1);
+                    }
+                }
+                redraw();
+            }
+            
             function canvasClick (e) {
                 var x = e.pageX - this.offsetLeft;
                 var y = e.pageY - this.offsetTop;
                 for (var i = field.tiles.length-1; i >= 0; i--) {
                     var tile = field.tiles[i];
-					var tx = tile.x * CellWidth - TileOffset;
+                    var tx = tile.x * CellWidth - TileOffset;
                     var ty = tile.y * CellHeight - TileOffset - TileOffset * tile.z;
                     if (x > tx && x < (tx + TileImageWidth) && y > ty && y < (ty + TileImageHeight)) {
                         var url = '/action/select_' + tile.x + '_' + tile.y + '_' + tile.z;
                         $.getJSON(url, processAction);
-						predictNewModel(tile);
-						updateField();
+                        predictNewModel(tile);
+                        updateField();
                         return;
                     }
                 }
             }
-			
-			function loadScore(scoreIndex) {
+            
+            function loadScore(scoreIndex) {
                 selectPanel('scorePanel');
                 loadScores(setups[scoreIndex].id, "");
-			}
-			
-			function loadSetup(setupIndex) { 
-				var url = '/action/creategame_' + setups[setupIndex].id;
+            }
+            
+            function loadSetup(setupIndex) { 
+                var url = '/action/creategame_' + setups[setupIndex].id;
                 $.getJSON(url, processAction);
-			}
-			
-			function selectMenu(panelName, functionName) {
-				selectPanel(panelName); 
-				var htmlText = '<ul class="setupList">';
-				for (var i=0; i< setups.length; i++) {
-					htmlText += '<li><a onclick="' + functionName + '(' + i + ');" href="#">';
+            }
+            
+            function selectMenu(panelName, functionName) {
+                selectPanel(panelName); 
+                var htmlText = '<ul class="setupList">';
+                for (var i=0; i< setups.length; i++) {
+                    htmlText += '<li><a onclick="' + functionName + '(' + i + ');" href="#">';
                     htmlText += '<img src="setups/' + setups[i].id + '.png" /><br />' + setups[i].name + '</a></li>';
-				}
-				htmlText += '</ul>';
-				$('#' + panelName).html(htmlText);
-			} 
-			
-			function selectSetup() {
-				selectMenu('setupsPanel', 'loadSetup');
-			}
-			
-			function selectScore() {
-				selectMenu('scoresPanel', 'loadScore');
-			}
+                }
+                htmlText += '</ul>';
+                $('#' + panelName).html(htmlText);
+            } 
+            
+            function selectSetup() {
+                selectMenu('setupsPanel', 'loadSetup');
+            }
+            
+            function selectScore() {
+                selectMenu('scoresPanel', 'loadScore');
+            }
             
             function sendScoreName() {
                 var name = $("#nameInput").val();
@@ -294,15 +294,15 @@
         </div>
         <div id="setupsPanel" style="display:none">SETUPS</div>
         <div id="scoresPanel" style="display:none">SCORES</div>
-		<div id="scorePanel" style="display:none">SCORE</div>
+        <div id="scorePanel" style="display:none">SCORE</div>
         <div id="addScore" style="display:none">
             <input type="text" id="nameInput" value="Anon" />
             <button id="addScoreButton" type="button">Send</button>
         </div>
         <script type="text/javascript">
             $("#createGameButton").click(selectSetup);
-			$("#showScoresButton").click(selectScore);
-			$("#moveableButton").click(moveablesClick);
+            $("#showScoresButton").click(selectScore);
+            $("#moveableButton").click(moveablesClick);
             $("#hintButton").click(hintClick);
             $("#field").click(canvasClick);
             $("#addScoreButton").click(sendScoreName);
