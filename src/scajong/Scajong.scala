@@ -6,10 +6,12 @@ import scajong.view.jetty._
 import scajong.view.tui._
 import scajong.controller._
 
-object ScaJong {
+object Scajong {
+  
+  val game = GameImplementation.create()
+  val controller = new Controller(game)
+  
   def main(args: Array[String]) {
-    val game = GameImplementation.create
-    val controller = new Controller(game)
     controller.attachView(new SwingView(game, "View 1"))
     controller.attachView(new SwingView(game, "View 2"))
     controller.attachView(new JettyView(game))
