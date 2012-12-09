@@ -4,20 +4,20 @@ import scajong.util._
 import io.Source
 
 object GameImplementation {
-  def create : Game = {
+  def create(scoreFile:String = "scores.txt", tilesFile:String = "tiles.txt", setupsDir:String = "setups/") : Game = {
     // TODO: construct setups and tiles in seperate steps
     val generator:Generator = new ReverseGenerator
-    new GameImplementation("setups/", "tiles.txt", generator)
+    new GameImplementation(scoreFile, setupsDir, tilesFile, generator)
   }
 }
 
-class GameImplementation private (setupsDir:String, tileFile:String, generator:Generator) extends Game {
+class GameImplementation private (scoreFile:String, setupsDir:String, tileFile:String, generator:Generator) extends Game {
   var width = 40
   var height = 26
   var tiles = Map[Int, Tile]()
   val tileTypes = TileType.LoadTileTypes(tileFile)
   val setups = Setup.CreateSetupsList(setupsDir)
-  val scores = new Scores("scores.txt", this)
+  val scores = new Scores(scoreFile, this)
   private var _selected:Tile = null
   private var currentSetup:Setup = null
   private var startTime : Long = 0

@@ -29,7 +29,7 @@ class GameImplementationSpec extends SpecificationWithJUnit {
   "A GameImplementation" should {
     
     def createTestObjects : (Game, Setup, FakeSubscriber) = {
-      val game:Game = GameImplementation.create
+      val game:Game = GameImplementation.create()
       val testSetup = game.setupById("test")
       val subscriber = new FakeSubscriber
       game.addSubscriber(subscriber)
