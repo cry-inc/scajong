@@ -80,6 +80,8 @@ class SwingView(game:Game, name:String = "") extends Frame with View with Simple
     selectPanel(setupSelectPanel)
   
   def closeView {
+    game.remSubscriber(fieldPanel)
+    game.remSubscriber(this)
     sendNotification(new CloseViewNotification(this))
     dispose
   }
