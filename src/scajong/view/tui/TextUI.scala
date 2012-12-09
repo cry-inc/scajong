@@ -1,40 +1,56 @@
-package scajong.tui
+package scajong.view.tui
 
 import scajong.model._
+import scajong.view._
+
+import scala.actors.Actor
 import util.matching.Regex
 
-object TextUI {
-  def main(args: Array[String]) {
-    val game = GameImplementation.create
-    game.startNewGame(game.setupById("test"))
-    new TextUI(game)
+class TextUI(val game:Game) extends View with Actor {
+
+  private var run = true
+
+  override def autoClose = true
+  
+  override def startView(game:Game) {
+    start
   }
-}
-
-class TextUI(val game:Game) {
-
-  printField(false)
-  run
-
+  
+  def act {
+    loop
+  }
+  
   def playTiles(a:Int, b:Int) {
     if (!game.tiles.contains(a))
       println("Could not find tile with id " + a + "!")
     else if (!game.tiles.contains(b))
       println("Could not find tile with id " + b + "!")
     else {
-      if (game.play(game.tiles(a), game.tiles(b))) {
-        println("Removed two tiles!")
-        if (game.tiles.size > 0) printField(false)
-        else println("You won by clearing the field!")
-    } else
-      println("Could not remove the tiles!")
+      val tile1 = game.tiles(a)
+      val tile2 = game.tiles(b)
+      if (tile1 == tile2) {
+        println("You have to selected two different tiles!")
+      } else if (tile1.tileType.id != tile2.tileType.id) {
+        println("The tiles must be of the same type!")
+      } else if (!game.canMove(tile1) || !game.canMove(tile2)) {
+        println("At least one the two selected tiles is not moveable!")
+      } else {
+        sendNotification(new TileClickedNotification(tile1))
+        sendNotification(new TileClickedNotification(game.tiles(b)))
+        printField(false)
+      }
     }
+  }
+  
+  def scramble {
+    sendNotification(new DoScrambleNotification)
+    printField(false)
   }
   
   def startGame(setupId:String) {
     val setup = game.setupById(setupId)
     if (setup != null) {
-      game.startNewGame(setup)
+      sendNotification(new SetupSelectedNotification(setup))
       printField(false)
     } else println("Invalid setup id!")
   }
@@ -52,18 +68,19 @@ class TextUI(val game:Game) {
     } else println("Invalid setup id!")
   }
 
-  def run {
+  def loop {
+    printHelp
     val playRegex = new Regex("^(\\d+) (\\d+)$", "a", "b")
     val startRegex = new Regex("^start ([a-z]+?)$", "setupId")
     val scoresRegex = new Regex("^scores ([a-z]+?)$", "setupId")
-    while (true) {
+    while (run) {
       readLine match {
         case "help" => printHelp
         case "p" => printField(false)
-        case "q" => return
+        case "q" => close
         case "h" => printHint
         case "m" => printMoveables
-        case "scramble" => game.scramble; printField(false)
+        case "scramble" => scramble
         case "setups" => printSetups
         case playRegex(a, b) => playTiles(a.toInt, b.toInt)
         case startRegex(setupId) => startGame(setupId)
@@ -114,15 +131,22 @@ class TextUI(val game:Game) {
     }
     (i1,i2,i3)
   }
+  
+  def close {
+    sendNotification(new CloseViewNotification(this))
+    run = false
+  }
 
   def printHint {
     val hint = game.hint
     if (hint != null) {
+      sendNotification(new HintNotification)
       println(game.calcTileIndex(hint.tile1) + " and " + game.calcTileIndex(hint.tile2))
     }
   }
 
   def printMoveables {
+    sendNotification(new MoveablesNotification)
     printField(true)
   }
   
