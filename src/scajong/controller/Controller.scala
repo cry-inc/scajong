@@ -31,7 +31,8 @@ class Controller(val game:Game) extends SimpleSubscriber {
     view.stopView(game)
     view.remSubscriber(this)
     views = views.filter(v => v != view)
-    if (views.length == 0) afterLastView
+    val withoutAutoClose = views.filter(!_.autoClose)
+    if (withoutAutoClose.length == 0) closeApplication
   }
 
   private def tileClicked(tile:Tile) {
@@ -49,5 +50,7 @@ class Controller(val game:Game) extends SimpleSubscriber {
     game.scores.addScore(setup, playerName, ms)
   }
   
-  def afterLastView {}
+  def closeApplication {
+  	System.exit(0)
+  }
 }

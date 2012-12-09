@@ -33,6 +33,8 @@ class JettyView(game:Game, port:Int = 8080) extends AbstractHandler with View wi
   server.setHandler(this);
   game.addSubscriber(this)
   
+  override def autoClose = true
+  
   private def addNotification(name:String, param1:String = "", param2:String = "") {
     val notification = new JsonNotification(name, notificationId, param1, param2)
     notificationId += 1

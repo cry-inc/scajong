@@ -14,4 +14,5 @@ class CloseViewNotification(val view:View) extends SimpleNotification
 trait View extends SimplePublisher {
   def startView(game:Game) {}
   def stopView(game:Game) {}
+  def autoClose = false
 }
