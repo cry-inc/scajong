@@ -54,7 +54,9 @@ class ControllerSpec extends SpecificationWithJUnit {
   def createTestSetup : (FakeGame, FakeView, Controller) = {
     val fakeGame = new FakeGame(scoreFileName)
     val fakeView = new FakeView
-    val controller = new Controller(fakeGame)
+    val controller = new Controller(fakeGame) {
+      override def closeApplication {}
+    }
     (fakeGame, fakeView, controller)
   }
   
