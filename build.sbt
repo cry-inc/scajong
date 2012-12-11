@@ -4,7 +4,7 @@ import AssemblyKeys._
 
 assemblySettings
 
-mainClass in assembly := Some("scajong.ScaJong")
+mainClass in assembly := Some("scajong.Scajong")
 
 jarName in assembly := "scajong.jar"
 
@@ -28,7 +28,8 @@ libraryDependencies ++= Seq("org.specs2" %% "specs2" % "1.12.2" % "test")
 
 libraryDependencies ++= Seq(
     "org.eclipse.jetty" % "jetty-server" % "8.1.7.v20120910" % "compile",
-    "org.eclipse.jetty.orbit" % "javax.servlet" % "3.0.0.v201112011016" % "compile" artifacts Artifact("javax.servlet", "jar", "jar"))
+    "org.eclipse.jetty.orbit" % "javax.servlet" % "3.0.0.v201112011016" % "compile" artifacts Artifact("javax.servlet", "jar", "jar")
+)
 
 mergeStrategy in assembly <<= (mergeStrategy in assembly) { (old) =>
   {
