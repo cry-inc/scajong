@@ -22,11 +22,8 @@ class ReverseGenerator extends Generator {
         reversed = pair :: reversed
         removables = removables.filter(t => t != pair.tile1 && t != pair.tile2)
       }
-      /*
-      // TODO: Remove and insert failed check?
       // Add remaining tiles to the field
       removables.foreach(game += _)
-      */
     }
     // Read the list from behind and and get random a random tile type for each pair to build the game
     var typeRand = new Random().nextInt(game.tileTypes.length)

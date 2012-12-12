@@ -159,7 +159,8 @@ class GameImplementationSpec extends SpecificationWithJUnit {
     
     "can scramble the game" in {
       val (game, testSetup, subscriber) = createTestObjects
-      game.startNewGame(testSetup)
+      // Cross is the only setup which uses all code paths in the generator!
+      game.startNewGame(game.setupById("cross"))
       subscriber.scrambled must beFalse
       game.scramble
       subscriber.scrambled must beTrue
