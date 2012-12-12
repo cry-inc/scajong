@@ -10,6 +10,7 @@ import javax.swing.JFrame._
 class ShowScoresEvent extends Event
 class StartGameEvent extends Event
 
+// TODO: remove game contructor argument
 class SwingView(game:Game, name:String = "") extends Frame with View with SimpleSubscriber {  
   
   val fieldPanel = new SwingFieldPanel(game, name)
@@ -28,6 +29,7 @@ class SwingView(game:Game, name:String = "") extends Frame with View with Simple
   listenTo(scoreSelectPanel)
   
   reactions += {
+    // TODO: Events as case classes and redo match blocks
     case e: TileClickedEvent => sendNotification(new TileClickedNotification(e.tile))
     case e: SetupSelectedEvent => sendNotification(new SetupSelectedNotification(e.setup))
     case e: ScoreSelectedEvent => scorePanel.showScores(e.setup); selectPanel(scorePanel)
@@ -41,6 +43,7 @@ class SwingView(game:Game, name:String = "") extends Frame with View with Simple
   
   override def processNotifications(sn:SimpleNotification) {
     sn match {
+      // TODO: Notification as case classes and redo match blocks
       case n: WonNotification => won(n.setup, n.ms)
       case n: CreatedGameNotification => fieldPanel.updateSize; selectPanel(fieldPanel); pack
       case n: NewScoreBoardEntryNotification => scorePanel.showScores(n.setup); selectPanel(scorePanel)
@@ -63,6 +66,7 @@ class SwingView(game:Game, name:String = "") extends Frame with View with Simple
     }
     contents += new Menu("Cheats") {
       contents += new MenuItem(Action("Show Moveables (+5 sec)") {
+        // TODO: moveables and hints over model/controller, so thei are visible on all views
         fieldPanel.enableMoveables
       })
       contents += new MenuItem(Action("Show Hint (+15 sec)") {

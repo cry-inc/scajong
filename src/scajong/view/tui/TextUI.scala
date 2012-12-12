@@ -6,6 +6,7 @@ import scajong.view._
 import scala.actors.Actor
 import util.matching.Regex
 
+// TODO: remove game contructor argument
 class TextUI(val game:Game) extends View with Actor {
 
   private var run = true

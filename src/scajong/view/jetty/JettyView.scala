@@ -22,6 +22,7 @@ class JsonNotification(val name:String, val id:Int, val param1:String = "", val 
   }
 }
 
+// TODO: remove game contructor argument
 class JettyView(game:Game, port:Int = 8080) extends AbstractHandler with View with SimpleSubscriber {
   
   private var notificationId = 1

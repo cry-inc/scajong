@@ -20,6 +20,7 @@ trait SimplePublisher {
   }
 }
 
-trait SimpleSubscriber {  
+trait SimpleSubscriber {
+  // TODO: remove s
   def processNotifications(notification:SimpleNotification)
 }
