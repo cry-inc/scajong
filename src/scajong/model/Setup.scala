@@ -17,4 +17,8 @@ object Setup {
   }
 }
 
-class Setup(val id:String, val name:String, val path:String)
+class Setup(val id:String, val name:String, val path:String) {
+  override def toString = {
+    "Setup[ID: " + id + "; name: " + name + "; path: " + path + "]"
+  }
+}

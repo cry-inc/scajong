@@ -37,9 +37,10 @@ class Controller(val game:Game) extends SimpleSubscriber {
 
   private def tileClicked(tile:Tile) {
     if (game.canMove(tile)) {
-      if (game.selected != null && game.selected.tileType == tile.tileType) {
-        game.play(game.selected, tile)
+      val tmpSelected = game.selected
+      if (tmpSelected != null && tmpSelected.tileType == tile.tileType) {
         game.selected = null
+        game.play(tmpSelected, tile)
       } else {
         game.selected = tile
       }
