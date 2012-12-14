@@ -23,7 +23,7 @@ class JsonNotification(val name:String, val id:Int, val param1:String = "", val 
 }
 
 // TODO: remove game contructor argument
-class JettyView(game:Game, port:Int = 8080) extends AbstractHandler with View with SimpleSubscriber {
+class JettyView(game:Game, port:Int = 8080) extends AbstractHandler with View {
   
   private var notificationId = 1
   private val server = new Server(port)
@@ -56,6 +56,10 @@ class JettyView(game:Game, port:Int = 8080) extends AbstractHandler with View wi
       case NewScoreBoardEntryNotification(setup, position) => addNotification("ShowScore", setup.id, position.toString)
       // TODO: Looks stupid, change!
       case wn:WonNotification => won(wn)
+      case StartHintNotification(hintPair) => addNotification("StartHint")
+      case StopHintNotification() => addNotification("StopHint")
+      case StartMoveablesNotification() => addNotification("StartMoveables")
+      case StopMoveablesNotification() => addNotification("StopMoveables")
     }
   }
   
@@ -303,8 +307,8 @@ class JettyView(game:Game, port:Int = 8080) extends AbstractHandler with View wi
           addScoreNotification = null
         }
       }
-      case "hint" => sendNotification(new HintNotification)
-      case "moveables" => sendNotification(new MoveablesNotification)
+      case "hint" => sendNotification(new RequestHintNotification)
+      case "moveables" => sendNotification(new RequestMoveablesNotification)
       case _ => // Nothing
     }
     "{}"

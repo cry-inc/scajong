@@ -11,7 +11,7 @@ case class ShowScoresEvent() extends Event
 case class StartGameEvent() extends Event
 
 // TODO: remove game contructor argument
-class SwingView(game:Game, name:String = "") extends Frame with View with SimpleSubscriber {  
+class SwingView(game:Game, name:String = "") extends Frame with View {  
   
   val fieldPanel = new SwingFieldPanel(game, name)
   val scorePanel = new SwingScoresPanel(game.scores)
@@ -35,8 +35,6 @@ class SwingView(game:Game, name:String = "") extends Frame with View with Simple
     case AddScoreEvent(setup, name, ms) => sendNotification(new AddScoreNotification(setup, name, ms))
     case StartGameEvent() => selectPanel(setupSelectPanel)
     case ShowScoresEvent() => selectPanel(scoreSelectPanel)
-    case HintEvent() => sendNotification(new HintNotification)
-    case MoveablesEvent() => sendNotification(new MoveablesNotification)
     case WindowClosing(_) => closeView
   }
   
@@ -46,7 +44,8 @@ class SwingView(game:Game, name:String = "") extends Frame with View with Simple
       case CreatedGameNotification() => fieldPanel.updateSize; selectPanel(fieldPanel); pack
       // TODO: highlight position in swing view table
       case NewScoreBoardEntryNotification(setup, position) => scorePanel.showScores(setup); selectPanel(scorePanel)
-      case _ => // Do Nothing
+      // Forward all other notifications to the field panel
+      case _ => fieldPanel.processNotification(sn)
     }
   }
   
@@ -65,11 +64,10 @@ class SwingView(game:Game, name:String = "") extends Frame with View with Simple
     }
     contents += new Menu("Cheats") {
       contents += new MenuItem(Action("Show Moveables (+5 sec)") {
-        // TODO: moveables and hints over model/controller, so thei are visible on all views
-        fieldPanel.enableMoveables
+        sendNotification(new RequestMoveablesNotification)
       })
       contents += new MenuItem(Action("Show Hint (+15 sec)") {
-        fieldPanel.enableHint
+        sendNotification(new RequestHintNotification)
       })
     }
   }
@@ -100,6 +98,7 @@ class SwingView(game:Game, name:String = "") extends Frame with View with Simple
     if (game.scores.isInScoreboard(setup, ms)) {
       scorePanel.addScore(setup, ms)
     } else {
+      // TODO: Remove dialog
       Dialog.showMessage(null, "Your time: " + (ms / 1000.0) + " seconds", "Missed scoreboard entry")
       scorePanel.showScores(setup)
     }

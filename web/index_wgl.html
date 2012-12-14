@@ -253,6 +253,10 @@
                                 var result = confirm('No further moves possible. Scramble?');
                                 if (result == true) $.getJSON('/action/scramble', processAction);
                                 break;
+							case 'StartHint': showHint = true; rebuild(); break;
+							case 'StopHint': showHint = false; rebuild(); break;
+							case 'StartMoveables': showMoveables = true; rebuild(); break;
+							case 'StopMoveables': showMoveables = false; rebuild(); break;
                         }
                         lastId = item.id;
                     }
@@ -347,17 +351,11 @@
             }
             
             function moveablesClick(e) {
-                showMoveables = true
-                rebuild();
-                setTimeout(function() { showMoveables = false; rebuild(); }, 5000);
                 var url = '/action/moveables';
                 $.getJSON(url, processAction);
             }
             
             function hintClick(e) {
-                showHint = true
-                rebuild();
-                setTimeout(function() { showHint = false; rebuild(); }, 1000);
                 var url = '/action/hint';
                 $.getJSON(url, processAction);
             }

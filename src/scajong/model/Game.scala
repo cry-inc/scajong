@@ -11,6 +11,13 @@ case class SelectedTileNotification(val tile:Tile) extends SimpleNotification
 case class CreatedGameNotification() extends SimpleNotification
 case class NewScoreBoardEntryNotification(val setup:Setup, val position:Int) extends SimpleNotification
 
+object Game {
+  val HintPenalty = 15000
+  val HintTimeout = 3000
+  val MoveablesPenalty = 5000
+  val MoveablesTimeout = 5000
+}
+
 trait Game extends SimplePublisher {
   
   // Tiles & TileTypes
@@ -36,9 +43,10 @@ trait Game extends SimplePublisher {
   def hint : TilePair
   def startNewGame(setup:Setup) // sends CreatedGame notification
   def scramble // sends Scrambled notification
-  def addPenalty(ms:Int)
   def selected:Tile
   def selected_=(tile:Tile) // sends SelectedTile notification
+  def requestHint:(TilePair,Int) // the user wants a hint. also adds the according penalty
+  def requestMoveables:Int // the user wants a moveables hint. adds also a penalty
   
   // Tile logic
   def canMove(tile:Tile) : Boolean

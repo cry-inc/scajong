@@ -183,6 +183,7 @@ class GameImplementationSpec extends SpecificationWithJUnit {
       game.setupById("doesnotexist") must beNull
     }
     
+    /*
     "can add a penalty" in {
       val (game, testSetup, subscriber) = createTestObjects
       val penalty = 15000
@@ -195,6 +196,7 @@ class GameImplementationSpec extends SpecificationWithJUnit {
       }
       subscriber.wonMs must be_>=(penalty)
     }
+    */
     
     "can find the topmost tile" in {
       val (game, testSetup, subscriber) = createTestObjects

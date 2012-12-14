@@ -1,20 +1,22 @@
 package scajong.controller
 
+import scala.actors._
+import scala.actors.Actor._
+
 import scajong.util._
 import scajong.model._
 import scajong.view._
-import scajong.view.AddScoreNotification
 
-class Controller(val game:Game) extends SimpleSubscriber {
+class Controller(val game:Game) extends SimpleSubscriber with SimplePublisher {
   
   var views = List[View]()
   
   override def processNotification(sn:SimpleNotification) {
     sn match {
       case TileClickedNotification(tile) => tileClicked(tile)
-      case SetupSelectedNotification(setup) => game.startNewGame(setup)
-      case HintNotification() => game.addPenalty(15000)
-      case MoveablesNotification() => game.addPenalty(5000)
+      case SetupSelectedNotification(setup) => startNewGame(setup)
+      case RequestHintNotification() => hint; println("request")
+      case RequestMoveablesNotification() => moveables
       case AddScoreNotification(setup, playerName, ms) => addScore(setup, playerName, ms)
       case CloseViewNotification(view) => detachView(view)
       case DoScrambleNotification() => game.scramble
@@ -23,16 +25,48 @@ class Controller(val game:Game) extends SimpleSubscriber {
 
   def attachView(view:View) {
     view.addSubscriber(this)
+    this.addSubscriber(view)
     view.startView(game)
     views = view :: views
   }
 
   def detachView(view:View) {
     view.stopView(game)
+    this.remSubscriber(view)
     view.remSubscriber(this)
     views = views.filter(v => v != view)
     val withoutAutoClose = views.filter(!_.autoClose)
     if (withoutAutoClose.length == 0) closeApplication
+  }
+  
+  private def startNewGame(setup:Setup) {
+    sendNotification(new StopHintNotification)
+    sendNotification(new StopMoveablesNotification)
+    game.startNewGame(setup)
+  }
+  
+  private def hint {
+    val (hint, timeout) = game.requestHint
+    sendNotification(new StartHintNotification(hint))
+    new Actor {
+      def act {
+        reactWithin(timeout) {
+          case TIMEOUT => sendNotification(new StopHintNotification)
+        }
+      }
+    }.start();
+  }
+  
+  private def moveables {
+    val timeout = game.requestMoveables
+    sendNotification(new StartMoveablesNotification)
+    new Actor {
+      def act {
+        reactWithin(timeout) {
+          case TIMEOUT => sendNotification(new StopMoveablesNotification)
+        }
+      }
+    }.start();
   }
 
   private def tileClicked(tile:Tile) {

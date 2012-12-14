@@ -2,6 +2,7 @@ package scajong.view.tui
 
 import scajong.model._
 import scajong.view._
+import scajong.util._
 
 import scala.actors.Actor
 import util.matching.Regex
@@ -12,6 +13,8 @@ class TextUI(val game:Game) extends View with Actor {
   private var run = true
 
   override def autoClose = true
+  
+  override def processNotification(sn:SimpleNotification) {}
   
   override def startView(game:Game) {
     start
@@ -141,13 +144,13 @@ class TextUI(val game:Game) extends View with Actor {
   def printHint {
     val hint = game.hint
     if (hint != null) {
-      sendNotification(new HintNotification)
+      sendNotification(new RequestHintNotification)
       println(game.calcTileIndex(hint.tile1) + " and " + game.calcTileIndex(hint.tile2))
     }
   }
 
   def printMoveables {
-    sendNotification(new MoveablesNotification)
+    sendNotification(new RequestMoveablesNotification)
     printField(true)
   }
   

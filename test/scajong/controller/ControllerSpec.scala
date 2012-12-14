@@ -4,6 +4,7 @@ import org.specs2.mutable._
 import scajong.model._
 import scajong.view._
 import scajong.model.Setup
+import scajong.util.SimpleNotification
 
 class FakeGame(scoreFileName:String) extends Game {
   var played = false
@@ -36,6 +37,8 @@ class FakeGame(scoreFileName:String) extends Game {
   def calcTileIndex(x:Int, y:Int, z:Int) : Int = 0
   def calcTileIndex(tile:Tile) : Int = 0
   def sortedTiles:List[Tile] = List[Tile]()
+  def requestHint:(TilePair,Int) = (null, 0)
+  def requestMoveables:Int = 0
 }
 
 class FakeView extends View {
@@ -45,6 +48,7 @@ class FakeView extends View {
   var stoppedGame:Game = null
   override def startView(game:Game) { started = true; startedGame = game }
   override def stopView(game:Game) { stopped = true; stoppedGame = game }
+  override def processNotification(sn:SimpleNotification) {}
 }
 
 class ControllerSpec extends SpecificationWithJUnit {
@@ -109,9 +113,9 @@ class ControllerSpec extends SpecificationWithJUnit {
       val (game, view, controller) = createTestSetup
       controller.attachView(view)
       game.penaltySum must be_==(0)
-      view.sendNotification(new HintNotification)
+      view.sendNotification(new RequestHintNotification)
       game.penaltySum must be_==(15000)
-      view.sendNotification(new MoveablesNotification)
+      view.sendNotification(new RequestMoveablesNotification)
       game.penaltySum must be_==(20000)
     }
     

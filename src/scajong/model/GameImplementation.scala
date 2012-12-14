@@ -126,6 +126,16 @@ class GameImplementation private (scoreFile:String, setupsDir:String, tileFile:S
     }
   }
 
+  def requestHint:(TilePair,Int) = {
+    addPenalty(Game.HintPenalty)
+    (hint, Game.HintTimeout)
+  }
+  
+  def requestMoveables:Int = {
+    addPenalty(Game.MoveablesPenalty)
+    Game.HintTimeout
+  }
+  
   def hint : TilePair = {
     // TODO: rewrite without return
     var moveableTiles = tiles.map(_._2).filter(canMove(_))
