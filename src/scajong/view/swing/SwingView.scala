@@ -100,7 +100,7 @@ class SwingView(game:Game, name:String = "") extends Frame with View with Simple
     if (game.scores.isInScoreboard(setup, ms)) {
       scorePanel.addScore(setup, ms)
     } else {
-      Dialog.showMessage(null, "Your time: " + (ms / 1000) + " seconds", "Missed scoreboard entry")
+      Dialog.showMessage(null, "Your time: " + (ms / 1000.0) + " seconds", "Missed scoreboard entry")
       scorePanel.showScores(setup)
     }
     selectPanel(scorePanel)
