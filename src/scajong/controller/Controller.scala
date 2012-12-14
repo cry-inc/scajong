@@ -76,24 +76,25 @@ class Controller(val game:Game) extends SimplePublisher {
     }.start();
   }
 
-  def selectTile(clickedTile:Tile) {
-    if (game.canMove(clickedTile)) {
-      if (selected != null && selected.tileType == clickedTile.tileType) {
+  def selectTile(newSelectedTile:Tile) {
+    if (newSelectedTile == null) {
+      selected = null
+      sendNotification(new TileSelectedNotification(selected))
+    } else if (game.canMove(newSelectedTile)) {
+      if (selected != null && selected.tileType == newSelectedTile.tileType) {
         val selectedTile = selected
         selected = null
-        sendNotification(new TileSelectedNotification(null))
-        playTilePair(selectedTile, clickedTile)
+        playTilePair(selectedTile, newSelectedTile)
       } else {
-        selected = clickedTile
-        sendNotification(new TileSelectedNotification(selected))
+        selected = newSelectedTile
       }
+      sendNotification(new TileSelectedNotification(selected))
     }
   }
   
   private def playTilePair(tile1:Tile, tile2:Tile) {
     if (game.play(tile1, tile2)) {
-      sendNotification(new TileRemovedNotification(tile1))
-      sendNotification(new TileRemovedNotification(tile2))
+      sendNotification(new TilesRemovedNotification(new TilePair(tile1, tile2)))
       if (game.tiles.size == 0) {
         val time = game.gameTime
         val inScoreBoard = game.scores.isInScoreboard(game.setup, time)

@@ -8,24 +8,30 @@ import scajong.controller._
 import scala.actors.Actor
 import util.matching.Regex
 
-// TODO: remove game contructor argument
-class TextUI() extends View with Actor {
+class TextUI() extends View {
 
   private var run = true
   private var controller:Controller = null
 
+  printHelp
+  
   override def autoClose = true
   
-  override def processNotification(sn:SimpleNotification) {}
+  override def processNotification(sn:SimpleNotification) {
+    sn match {
+      case StartHintNotification(hint) => println("Hint: " + controller.calcTileIndex(hint.tile1) + " " + controller.calcTileIndex(hint.tile2))
+      case StartMoveablesNotification() => printField(true)
+      case CreatedGameNotification() => printField(false)
+      case WonNotification(setup, ms, inScoreBoard) => println("You won the game!")
+      case NoFurtherMovesNotification() => println("There are no further moves! Scramble?")
+      case TilesRemovedNotification(tiles) => println("Updated field:"); printField(false)
+      case ScrambledNotification() => println("Scrambled field:"); printField(false)
+      case _ => // Ignore all other notifications
+    }
+  }
   
   override def startView(controller:Controller) {
     this.controller = controller;
-    start
-  }
-  
-  def act {
-    // TODO: move input stuff into main
-    loop
   }
   
   def playTiles(a:Int, b:Int) {
@@ -43,23 +49,21 @@ class TextUI() extends View with Actor {
       } else if (!controller.canMove(tile1) || !controller.canMove(tile2)) {
         println("At least one the two selected tiles is not moveable!")
       } else {
+        controller.selectTile(null)
         controller.selectTile(tile1)
         controller.selectTile(tile2)
-        printField(false)
       }
     }
   }
   
   def scramble {
     controller.scramble
-    printField(false)
   }
   
   def startGame(setupId:String) {
     val setup = controller.setupById(setupId)
     if (setup != null) {
       controller.startNewGame(setup)
-      printField(false)
     } else println("Invalid setup id!")
   }
   
@@ -76,26 +80,25 @@ class TextUI() extends View with Actor {
     } else println("Invalid setup id!")
   }
 
-  def loop {
-    printHelp
-    val playRegex = new Regex("^(\\d+) (\\d+)$", "a", "b")
-    val startRegex = new Regex("^start ([a-z]+?)$", "setupId")
-    val scoresRegex = new Regex("^scores ([a-z]+?)$", "setupId")
-    while (run) {
-      readLine match {
-        case "help" => printHelp
-        case "p" => printField(false)
-        case "q" => close
-        case "h" => printHint
-        case "m" => printMoveables
-        case "scramble" => scramble
-        case "setups" => printSetups
-        case playRegex(a, b) => playTiles(a.toInt, b.toInt)
-        case startRegex(setupId) => startGame(setupId)
-        case scoresRegex(setupId) => showScores(setupId)
-        case _ => println("Unknown command!")
-      }
-    }
+  def readCommand : Boolean = {
+	val playRegex = new Regex("^(\\d+) (\\d+)$", "a", "b")
+	val startRegex = new Regex("^start ([a-z]+?)$", "setupId")
+	val scoresRegex = new Regex("^scores ([a-z]+?)$", "setupId")
+	var continue = true
+	readLine match {
+	  case "help" => printHelp
+	  case "p" => printField(false)
+	  case "q" => close; continue = false
+	  case "h" => printHint
+	  case "m" => printMoveables
+	  case "scramble" => scramble
+	  case "setups" => printSetups
+	  case playRegex(a, b) => playTiles(a.toInt, b.toInt)
+	  case startRegex(setupId) => startGame(setupId)
+	  case scoresRegex(setupId) => showScores(setupId)
+	  case _ => println("Unknown command!")
+	}
+	continue
   }
 
   def printHelp {
@@ -142,21 +145,14 @@ class TextUI() extends View with Actor {
   
   def close {
     controller.detachView(this)
-    run = false
   }
 
   def printHint {
-    // TODO: fix hint by printing messages from controller
-    val hint:TilePair = null
-    if (hint != null) {
-      controller.requestHint
-      println(controller.calcTileIndex(hint.tile1) + " and " + controller.calcTileIndex(hint.tile2))
-    }
+    controller.requestHint
   }
 
   def printMoveables {
     controller.requestMoveables
-    printField(true)
   }
   
   def printSetups {

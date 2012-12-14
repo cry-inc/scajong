@@ -51,7 +51,7 @@ class JettyView(port:Int = 8888) extends AbstractHandler with View {
   override def processNotification(sn:SimpleNotification) {
     sn match {
       case NoFurtherMovesNotification() => addNotification("NoFurtherMoves")
-      case TileRemovedNotification(tile) => addNotification("UpdateField")
+      case TilesRemovedNotification(tiles) => addNotification("UpdateField")
       case ScrambledNotification() => addNotification("UpdateField")
       case TileSelectedNotification(tile) => selectedTile = tile; addNotification("UpdateField")
       case CreatedGameNotification() => addNotification("NewGame")

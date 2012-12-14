@@ -15,6 +15,9 @@ object Scajong {
     controller.attachView(new SwingView("View 1"))
     controller.attachView(new SwingView("View 2"))
     controller.attachView(new JettyView)
-    controller.attachView(new TextUI)
+    
+    val tui = new TextUI
+    controller.attachView(tui)
+    while (tui.readCommand) {}
   }
 }
