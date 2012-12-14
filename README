@@ -16,7 +16,7 @@ Features:
  - Graphical Swing user interface
  - Two HTML5 user interfaces, one uses a HTML 5 Canvas element to draw the game,
    the other user interface provides a 3D intreface using WebGL!
-   Address: http://localhost:8080/ and http://localhost:8080/index_wgl.html
+   Address: http://localhost:8888/ and http://localhost:8888/index_wgl.html
  - You have the choice: All user interfaces are launched together with the game,
    you can chose which one to use. The others will be also updated to show your
    progress. 
