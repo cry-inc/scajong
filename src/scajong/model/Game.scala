@@ -4,11 +4,11 @@ import scajong.util.SimplePublisher;
 import scajong.util.SimpleNotification;
 
 case class WonNotification(val setup:Setup, val ms:Int, val inScoreBoard:Boolean) extends SimpleNotification
-case class NoFurtherMovesNotification extends SimpleNotification
-case class TilesChangedNotification extends SimpleNotification
-case class ScrambledNotification extends SimpleNotification
+case class NoFurtherMovesNotification() extends SimpleNotification
+case class TilesChangedNotification() extends SimpleNotification
+case class ScrambledNotification() extends SimpleNotification
 case class SelectedTileNotification(val tile:Tile) extends SimpleNotification
-case class CreatedGameNotification extends SimpleNotification
+case class CreatedGameNotification() extends SimpleNotification
 case class NewScoreBoardEntryNotification(val setup:Setup, val position:Int) extends SimpleNotification
 
 trait Game extends SimplePublisher {

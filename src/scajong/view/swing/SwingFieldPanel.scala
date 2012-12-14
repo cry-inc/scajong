@@ -17,8 +17,8 @@ object SwingFieldPanel {
 }
 
 case class TileClickedEvent(val tile:Tile) extends Event
-case class HintEvent extends Event
-case class MoveablesEvent extends Event
+case class HintEvent() extends Event
+case class MoveablesEvent() extends Event
 
 class SwingFieldPanel(val game:Game, name:String) extends Panel with SimpleSubscriber {
   private var images = Map[String, Image]()

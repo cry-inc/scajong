@@ -7,8 +7,8 @@ import scala.swing._
 import scala.swing.event._
 import javax.swing.JFrame._
 
-case class ShowScoresEvent extends Event
-case class StartGameEvent extends Event
+case class ShowScoresEvent() extends Event
+case class StartGameEvent() extends Event
 
 // TODO: remove game contructor argument
 class SwingView(game:Game, name:String = "") extends Frame with View with SimpleSubscriber {  
