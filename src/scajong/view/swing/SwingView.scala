@@ -7,8 +7,8 @@ import scala.swing._
 import scala.swing.event._
 import javax.swing.JFrame._
 
-class ShowScoresEvent extends Event
-class StartGameEvent extends Event
+case class ShowScoresEvent extends Event
+case class StartGameEvent extends Event
 
 // TODO: remove game contructor argument
 class SwingView(game:Game, name:String = "") extends Frame with View with SimpleSubscriber {  
@@ -29,25 +29,24 @@ class SwingView(game:Game, name:String = "") extends Frame with View with Simple
   listenTo(scoreSelectPanel)
   
   reactions += {
-    // TODO: Events as case classes and redo match blocks
-    case e: TileClickedEvent => sendNotification(new TileClickedNotification(e.tile))
-    case e: SetupSelectedEvent => sendNotification(new SetupSelectedNotification(e.setup))
-    case e: ScoreSelectedEvent => scorePanel.showScores(e.setup); selectPanel(scorePanel)
-    case e: AddScoreEvent => sendNotification(new AddScoreNotification(e.setup, e.name, e.ms))
-    case e: StartGameEvent => selectPanel(setupSelectPanel)
-    case e: ShowScoresEvent => selectPanel(scoreSelectPanel)
-    case e: HintEvent => sendNotification(new HintNotification)
-    case e: MoveablesEvent => sendNotification(new MoveablesNotification)
-    case e: WindowClosing => closeView
+    case TileClickedEvent(tile) => sendNotification(new TileClickedNotification(tile))
+    case SetupSelectedEvent(setup) => sendNotification(new SetupSelectedNotification(setup))
+    case ScoreSelectedEvent(setup) => scorePanel.showScores(setup); selectPanel(scorePanel)
+    case AddScoreEvent(setup, name, ms) => sendNotification(new AddScoreNotification(setup, name, ms))
+    case StartGameEvent() => selectPanel(setupSelectPanel)
+    case ShowScoresEvent() => selectPanel(scoreSelectPanel)
+    case HintEvent() => sendNotification(new HintNotification)
+    case MoveablesEvent() => sendNotification(new MoveablesNotification)
+    case WindowClosing(_) => closeView
   }
   
   override def processNotification(sn:SimpleNotification) {
     sn match {
-      // TODO: Notification as case classes and redo match blocks
-      case n: WonNotification => won(n.setup, n.ms)
-      case n: CreatedGameNotification => fieldPanel.updateSize; selectPanel(fieldPanel); pack
-      case n: NewScoreBoardEntryNotification => scorePanel.showScores(n.setup); selectPanel(scorePanel)
-      case _ => // Nothing
+      case WonNotification(setup, ms, inScoreBoard) => won(setup, ms)
+      case CreatedGameNotification() => fieldPanel.updateSize; selectPanel(fieldPanel); pack
+      // TODO: highlight position in swing view table
+      case NewScoreBoardEntryNotification(setup, position) => scorePanel.showScores(setup); selectPanel(scorePanel)
+      case _ => // Do Nothing
     }
   }
   

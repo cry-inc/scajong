@@ -1,6 +1,6 @@
 package scajong.util
 
-class SimpleNotification
+case class SimpleNotification
 
 trait SimplePublisher {
   var subscribers = Set[SimpleSubscriber]()

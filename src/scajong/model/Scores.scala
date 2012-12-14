@@ -17,8 +17,6 @@ object Scores {
   val separator = "####"
 }
 
-class NewScoreBoardEntryNotification(val setup:Setup, val position:Int) extends SimpleNotification
-
 class Scores(scoreFile:String, publisher:SimplePublisher) {
 
   var scores = List[ScoreEntry]()

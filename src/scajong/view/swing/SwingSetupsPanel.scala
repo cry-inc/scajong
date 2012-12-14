@@ -6,8 +6,8 @@ import swing._
 import scala.swing.event.Event
 import javax.swing.ImageIcon
 
-class SetupSelectedEvent(val setup:Setup) extends Event
-class ScoreSelectedEvent(val setup:Setup) extends Event
+case class SetupSelectedEvent(val setup:Setup) extends Event
+case class ScoreSelectedEvent(val setup:Setup) extends Event
 
 abstract class SwingSetupsPanel(setups:List[Setup], caption:String) extends GridPanel(setups.size+1, 1) {
   val setupsPanel = this

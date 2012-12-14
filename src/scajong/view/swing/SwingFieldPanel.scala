@@ -16,9 +16,9 @@ object SwingFieldPanel {
   val TileImageHeight= 95
 }
 
-class TileClickedEvent(val tile:Tile) extends Event
-class HintEvent extends Event
-class MoveablesEvent extends Event
+case class TileClickedEvent(val tile:Tile) extends Event
+case class HintEvent extends Event
+case class MoveablesEvent extends Event
 
 class SwingFieldPanel(val game:Game, name:String) extends Panel with SimpleSubscriber {
   private var images = Map[String, Image]()
@@ -72,12 +72,12 @@ class SwingFieldPanel(val game:Game, name:String) extends Panel with SimpleSubsc
 
   override def processNotification(sn:SimpleNotification) {
     sn match {
-      case n:TilesChangedNotification => repaint
-      case n:SelectedTileNotification => repaint
-      case n:CreatedGameNotification => repaint
-      case n:ScrambledNotification => repaint
-      case n:NoFurtherMovesNotification => // TODO: Ask for scramble
-      case _ => // Nothing
+      case TilesChangedNotification() => repaint
+      case SelectedTileNotification(tile) => repaint
+      case CreatedGameNotification() => repaint
+      case ScrambledNotification() => repaint
+      case NoFurtherMovesNotification() => // TODO: Ask for scramble
+      case _ => // Do Nothing
     }
   }
 

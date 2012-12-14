@@ -48,20 +48,22 @@ class JettyView(game:Game, port:Int = 8080) extends AbstractHandler with View wi
   
   override def processNotification(sn:SimpleNotification) {
     sn match {
-      case n: WonNotification => {
-        if (n.inScoreBoard) {
-          addScoreNotification = n
-          addNotification("AddScore")
-        } else addNotification("ShowScore", n.setup.id)
-      }
-      case n:NoFurtherMovesNotification => addNotification("NoFurtherMoves")
-      case n:TilesChangedNotification => addNotification("UpdateField")
-      case n:ScrambledNotification => addNotification("UpdateField")
-      case n:SelectedTileNotification => addNotification("UpdateField")
-      case n:CreatedGameNotification => addNotification("NewGame")
-      case n:NewScoreBoardEntryNotification => addNotification("ShowScore", n.setup.id, n.position.toString)
-      case _ => // Nothing
+      case NoFurtherMovesNotification() => addNotification("NoFurtherMoves")
+      case TilesChangedNotification() => addNotification("UpdateField")
+      case ScrambledNotification() => addNotification("UpdateField")
+      case SelectedTileNotification(tile) => addNotification("UpdateField")
+      case CreatedGameNotification() => addNotification("NewGame")
+      case NewScoreBoardEntryNotification(setup, position) => addNotification("ShowScore", setup.id, position.toString)
+      // TODO: Looks stupid, change!
+      case wn:WonNotification => won(wn)
     }
+  }
+  
+  private def won(wn:WonNotification) {
+    if (wn.inScoreBoard) {
+      addScoreNotification = wn
+      addNotification("AddScore")
+    } else addNotification("ShowScore", wn.setup.id)
   }
   
   private def s2i(str:String) = {

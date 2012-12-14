@@ -3,6 +3,7 @@ package scajong.controller
 import scajong.util._
 import scajong.model._
 import scajong.view._
+import scajong.view.AddScoreNotification
 
 class Controller(val game:Game) extends SimpleSubscriber {
   
@@ -10,14 +11,13 @@ class Controller(val game:Game) extends SimpleSubscriber {
   
   override def processNotification(sn:SimpleNotification) {
     sn match {
-      case n: TileClickedNotification => tileClicked(n.tile)
-      case n: SetupSelectedNotification => game.startNewGame(n.setup)
-      case n: HintNotification => game.addPenalty(15000)
-      case n: MoveablesNotification => game.addPenalty(5000)
-      case n: AddScoreNotification => addScore(n.setup, n.playerName, n.ms)
-      case n: CloseViewNotification => detachView(n.view)
-      case n: DoScrambleNotification => game.scramble
-      case _ => // Nothing
+      case TileClickedNotification(tile) => tileClicked(tile)
+      case SetupSelectedNotification(setup) => game.startNewGame(setup)
+      case HintNotification() => game.addPenalty(15000)
+      case MoveablesNotification() => game.addPenalty(5000)
+      case AddScoreNotification(setup, playerName, ms) => addScore(setup, playerName, ms)
+      case CloseViewNotification(view) => detachView(view)
+      case DoScrambleNotification() => game.scramble
     }
   }
 

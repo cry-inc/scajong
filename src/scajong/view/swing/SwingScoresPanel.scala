@@ -4,7 +4,7 @@ import scajong.model._
 import swing._
 import swing.event._
 
-class AddScoreEvent(val setup:Setup, val name:String, val ms:Int) extends Event
+case class AddScoreEvent(val setup:Setup, val name:String, val ms:Int) extends Event
 
 class SwingScoresPanel(scores:Scores) extends GridPanel(1, 1) {
 
