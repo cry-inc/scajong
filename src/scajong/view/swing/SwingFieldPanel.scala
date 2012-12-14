@@ -118,7 +118,7 @@ class SwingFieldPanel(val game:Game, name:String) extends Panel with SimpleSubsc
 
   override def paintComponent(g: Graphics2D) : Unit = {
     g.setColor(new Color(255, 255, 255))
-    g.fillRect(0, 0, preferredSize.width, preferredSize.height)
+    g.fillRect(0, 0, size.width, size.height)
     val tiles = game.sortedTiles
     var hint:TilePair = if (showHint) game.hint else null
     for (tile <- tiles) {
