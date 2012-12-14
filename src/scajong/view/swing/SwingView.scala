@@ -41,7 +41,7 @@ class SwingView(game:Game, name:String = "") extends Frame with View with Simple
     case e: WindowClosing => closeView
   }
   
-  override def processNotifications(sn:SimpleNotification) {
+  override def processNotification(sn:SimpleNotification) {
     sn match {
       // TODO: Notification as case classes and redo match blocks
       case n: WonNotification => won(n.setup, n.ms)

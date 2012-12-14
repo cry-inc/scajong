@@ -6,7 +6,7 @@ trait SimplePublisher {
   var subscribers = Set[SimpleSubscriber]()
 
   def sendNotification(notification:SimpleNotification) {
-    subscribers.foreach(_.processNotifications(notification))
+    subscribers.foreach(_.processNotification(notification))
   }
 
   def addSubscriber(subscriber:SimpleSubscriber) {
@@ -21,6 +21,5 @@ trait SimplePublisher {
 }
 
 trait SimpleSubscriber {
-  // TODO: remove s
-  def processNotifications(notification:SimpleNotification)
+  def processNotification(notification:SimpleNotification)
 }

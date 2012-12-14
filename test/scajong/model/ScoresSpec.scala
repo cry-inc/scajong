@@ -30,7 +30,7 @@ class ScoresSpec extends SpecificationWithJUnit {
     val publisher = new SimplePublisher {}
     val subscriber = new SimpleSubscriber {
       var notificated = false
-      def processNotifications(n:SimpleNotification) {
+      def processNotification(n:SimpleNotification) {
         n match {
           case sn: NewScoreBoardEntryNotification => notificated = true
         }

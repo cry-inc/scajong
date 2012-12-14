@@ -9,13 +9,13 @@ class SimplePubSubSpec extends SpecificationWithJUnit {
     "can process notifications" in {
       val subscriber = new SimpleSubscriber {
         var notificated = false
-            def processNotifications(notification:SimpleNotification) {
+            def processNotification(notification:SimpleNotification) {
           notificated = true
         }
       }
       
       subscriber.notificated must beFalse
-      subscriber.processNotifications(new SimpleNotification)
+      subscriber.processNotification(new SimpleNotification)
       subscriber.notificated must beTrue
     }
   }
@@ -25,7 +25,7 @@ class SimplePubSubSpec extends SpecificationWithJUnit {
     "can attach and remove subscribers" in {
       val publisher = new SimplePublisher {}
       val subscriber = new SimpleSubscriber {
-        def processNotifications(notification:SimpleNotification) {}
+        def processNotification(notification:SimpleNotification) {}
       }
       
       publisher.addSubscriber(subscriber)
@@ -38,7 +38,7 @@ class SimplePubSubSpec extends SpecificationWithJUnit {
       val publisher = new SimplePublisher {}
       val subscriber = new SimpleSubscriber {
         var notificated = false
-            def processNotifications(notification:SimpleNotification) {
+            def processNotification(notification:SimpleNotification) {
           notificated = true
         }
       }

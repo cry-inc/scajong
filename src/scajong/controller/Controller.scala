@@ -8,7 +8,7 @@ class Controller(val game:Game) extends SimpleSubscriber {
   
   var views = List[View]()
   
-  override def processNotifications(sn:SimpleNotification) {
+  override def processNotification(sn:SimpleNotification) {
     sn match {
       case n: TileClickedNotification => tileClicked(n.tile)
       case n: SetupSelectedNotification => game.startNewGame(n.setup)

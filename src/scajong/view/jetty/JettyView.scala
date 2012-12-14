@@ -46,7 +46,7 @@ class JettyView(game:Game, port:Int = 8080) extends AbstractHandler with View wi
     continuations = List[Continuation]()
   }
   
-  override def processNotifications(sn:SimpleNotification) {
+  override def processNotification(sn:SimpleNotification) {
     sn match {
       case n: WonNotification => {
         if (n.inScoreBoard) {

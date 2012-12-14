@@ -12,7 +12,7 @@ class FakeSubscriber extends SimpleSubscriber {
   var selected = false
   var noMoves = false
   var wonMs = 0
-  def processNotifications(sn: SimpleNotification) {
+  def processNotification(sn: SimpleNotification) {
     sn match {
       case n:TilesChangedNotification => tilesChanged = true
       case n:CreatedGameNotification => started = true
