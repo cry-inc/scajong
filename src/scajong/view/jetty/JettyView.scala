@@ -3,6 +3,7 @@ package scajong.view.jetty
 import scajong.model._
 import scajong.view._
 import scajong.util._
+import scajong.controller._
 import util.matching.Regex
 import org.eclipse.jetty.server._
 import org.eclipse.jetty.server.handler.AbstractHandler
@@ -23,8 +24,9 @@ class JsonNotification(val name:String, val id:Int, val param1:String = "", val 
 }
 
 // TODO: remove game contructor argument
-class JettyView(game:Game, port:Int = 8888) extends AbstractHandler with View {
+class JettyView(port:Int = 8888) extends AbstractHandler with View {
   
+  private var controller:Controller = null
   private var notificationId = 1
   private val server = new Server(port)
   private var notifications = List[JsonNotification]()
@@ -147,7 +149,7 @@ class JettyView(game:Game, port:Int = 8888) extends AbstractHandler with View {
       }
       case scoreRegex(setupId) => {
         response.setContentType("application/json")
-        val setup = game.setupById(setupId)
+        val setup = controller.setupById(setupId)
         stringData = if (setup != null) buildScoresJson(setup) else "{}"
       }
       case actionRegex(a) => {
@@ -174,11 +176,12 @@ class JettyView(game:Game, port:Int = 8888) extends AbstractHandler with View {
       response.getWriter().println(stringData)
   }
 
-  override def startView(game:Game) {
+  override def startView(controller:Controller) {
+    this.controller = controller
     server.start
   }
 
-  override def stopView(game:Game) {
+  override def stopView(controller:Controller) {
     server.stop
     server.join
   }
@@ -192,12 +195,13 @@ class JettyView(game:Game, port:Int = 8888) extends AbstractHandler with View {
   }
 
   def buildFieldJson = {
-    val hintPair = game.hint
-    val tiles = game.sortedTiles.reverse
+    // TODO: Remove hint from controller!
+    val hintPair = controller.hint
+    val tiles = controller.sortedTiles.reverse
       var tilesJson = List[String]()
       tiles.foreach(tile => {
       val selectedStr = if (tile == selectedTile) "true" else  "false"
-      val moveableStr = if (game.canMove(tile)) "true" else "false"
+      val moveableStr = if (controller.canMove(tile)) "true" else "false"
       val hintStr = if (tile == hintPair.tile1 || tile == hintPair.tile2) "true" else "false"
       val tileType = if (tile.tileType == null) "empty" else tile.tileType.name
       val tileTypeId = if (tile.tileType == null) "-1" else tile.tileType.id.toString
@@ -214,8 +218,8 @@ class JettyView(game:Game, port:Int = 8888) extends AbstractHandler with View {
     })
     
     "{\n" +
-    "    \"fieldwidth\": " + game.width + ",\n" +
-    "    \"fieldheight\": " + game.height + ",\n" +
+    "    \"fieldwidth\": " + controller.fieldWidth + ",\n" +
+    "    \"fieldheight\": " + controller.fieldHeight + ",\n" +
     "    \"tilewidth\": " + Tile.Width + ",\n" +
     "    \"tileheight\": " + Tile.Height + ",\n" +
     "    \"tiledepth\": " + Tile.Depth + ",\n" +
@@ -226,7 +230,7 @@ class JettyView(game:Game, port:Int = 8888) extends AbstractHandler with View {
 
   def buildTilesJson = {
     var typesJson = List[String]()
-    game.tileTypes.foreach(tileType => {
+    controller.tileTypes.foreach(tileType => {
       typesJson = "       {\n" +
                   "           \"id\": " + tileType.id + ",\n" +
                   "           \"name\": \"" + tileType.name + "\"\n" +
@@ -242,7 +246,7 @@ class JettyView(game:Game, port:Int = 8888) extends AbstractHandler with View {
 
   def buildSetupsJson = {
     var setupsJson = List[String]()
-    game.setups.foreach(setup => {
+    controller.setups.foreach(setup => {
       setupsJson = "       {\n" +
                    "           \"id\": \"" + setup.id + "\",\n" +
                    "           \"name\": \"" + setup.name + "\"\n" +
@@ -257,7 +261,7 @@ class JettyView(game:Game, port:Int = 8888) extends AbstractHandler with View {
   }
 
   def buildScoresJson(setup:Setup) = {
-    val scores = game.scores.getScores(setup).reverse
+    val scores = controller.scores.getScores(setup).reverse
     var scoresJson = List[String]()
     scores.foreach(score => {
       scoresJson = "       {\n" +
@@ -291,24 +295,24 @@ class JettyView(game:Game, port:Int = 8888) extends AbstractHandler with View {
     val addScoreRegex = new Regex("^addscore_(.+)$", "name")
     
     a match {
-      case "scramble" => sendNotification(new DoScrambleNotification)
+      case "scramble" => controller.scramble
       case selectRegex(x, y, z) => {
-        val tile = game.findTile(x.toInt, y.toInt, z.toInt)
-        sendNotification(new TileClickedNotification(tile))
+        val tile = controller.findTile(x.toInt, y.toInt, z.toInt)
+        controller.selectTile(tile)
       }
       case createGameRegex(setupId) => {
-        val setup = game.setupById(setupId)
+        val setup = controller.setupById(setupId)
         if (setup != null)
-          sendNotification(new SetupSelectedNotification(setup))
+          controller.startNewGame(setup)
       }
       case addScoreRegex(name) => {
         if (addScoreNotification != null) {
-          sendNotification(new AddScoreNotification(addScoreNotification.setup, name, addScoreNotification.ms))
+          controller.addScore(addScoreNotification.setup, name, addScoreNotification.ms)
           addScoreNotification = null
         }
       }
-      case "hint" => sendNotification(new RequestHintNotification)
-      case "moveables" => sendNotification(new RequestMoveablesNotification)
+      case "hint" => controller.requestHint
+      case "moveables" => controller.requestMoveables
       case _ => // Nothing
     }
     "{}"

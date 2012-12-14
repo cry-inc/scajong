@@ -7,52 +7,52 @@ import scajong.util._
 import scajong.model._
 import scajong.view._
 
-class Controller(val game:Game) extends SimpleSubscriber with SimplePublisher {
+class Controller(val game:Game) extends SimplePublisher {
   
   private var views = List[View]()
   private var selected:Tile = null
   
-  override def processNotification(sn:SimpleNotification) {
-    sn match {
-      case TileClickedNotification(tile) => tileClicked(tile)
-      case SetupSelectedNotification(setup) => startNewGame(setup)
-      case RequestHintNotification() => hint
-      case RequestMoveablesNotification() => moveables
-      case AddScoreNotification(setup, playerName, ms) => addScore(setup, playerName, ms)
-      case CloseViewNotification(view) => detachView(view)
-      case DoScrambleNotification() => game.scramble
-    }
-  }
-
   def attachView(view:View) {
-    view.addSubscriber(this)
     this.addSubscriber(view)
-    view.startView(game)
+    view.startView(this)
     views = view :: views
   }
 
   def detachView(view:View) {
-    view.stopView(game)
+    view.stopView(this)
     this.remSubscriber(view)
-    view.remSubscriber(this)
     views = views.filter(v => v != view)
     val withoutAutoClose = views.filter(!_.autoClose)
     if (withoutAutoClose.length == 0) closeApplication
   }
   
-  private def startNewGame(setup:Setup) {
+  def scores = game.scores
+  def tiles = game.tiles
+  def setups = game.setups
+  def tileTypes = game.tileTypes
+  def fieldHeight = game.height
+  def fieldWidth = game.width
+  def canMove(tile:Tile) = game.canMove(tile)
+  def calcTileIndex(tile:Tile) = game.calcTileIndex(tile)
+  def setupById(id:String) = game.setupById(id)
+  def topmostTile(x:Int, y:Int) = game.topmostTile(x, y)
+  def hint = game.hint
+  def sortedTiles = game.sortedTiles
+  def findTile(x:Int, y:Int, z:Int) = game.findTile(x, y, z)
+  
+  def startNewGame(setup:Setup) {
     game.startNewGame(setup)
     sendNotification(new CreatedGameNotification)
     sendNotification(new StopHintNotification)
     sendNotification(new StopMoveablesNotification)
   }
   
-  private def scramble {
+  def scramble {
     game.scramble
     sendNotification(new ScrambledNotification)
   }
   
-  private def hint {
+  def requestHint {
     game.addHintPenalty
     sendNotification(new StartHintNotification(game.hint))
     new Actor {
@@ -64,7 +64,7 @@ class Controller(val game:Game) extends SimpleSubscriber with SimplePublisher {
     }.start();
   }
   
-  private def moveables {
+  def requestMoveables {
     game.addMoveablesPenalty
     sendNotification(new StartMoveablesNotification)
     new Actor {
@@ -76,7 +76,7 @@ class Controller(val game:Game) extends SimpleSubscriber with SimplePublisher {
     }.start();
   }
 
-  private def tileClicked(clickedTile:Tile) {
+  def selectTile(clickedTile:Tile) {
     if (game.canMove(clickedTile)) {
       if (selected != null && selected.tileType == clickedTile.tileType) {
         val selectedTile = selected
@@ -104,12 +104,12 @@ class Controller(val game:Game) extends SimpleSubscriber with SimplePublisher {
     }
   }
 
-  private def addScore(setup:Setup, playerName:String, ms:Int) {
+  def addScore(setup:Setup, playerName:String, ms:Int) {
     val position = game.scores.addScore(setup, playerName, ms)
     sendNotification(new NewScoreBoardEntryNotification(setup, position))
   }
   
-  def closeApplication {
+  protected def closeApplication {
   	System.exit(0)
   }
 }

@@ -2,6 +2,7 @@ package scajong.view.swing
 
 import scajong.model._
 import scajong.util._
+import scajong.controller._
 import swing._
 import swing.event._
 import javax.imageio.ImageIO
@@ -17,7 +18,7 @@ object SwingFieldPanel {
 
 case class TileClickedEvent(val tile:Tile) extends Event
 
-class SwingFieldPanel(val game:Game, name:String) extends Panel with SimpleSubscriber {
+class SwingFieldPanel(val controller:Controller) extends Panel with SimpleSubscriber {
   private var images = Map[String, Image]()
   private var showHint = false
   private var showMoveables = false
@@ -34,8 +35,8 @@ class SwingFieldPanel(val game:Game, name:String) extends Panel with SimpleSubsc
 
   def updateSize {
     preferredSize = new Dimension(
-      game.width * SwingFieldPanel.CellWidth, 
-      game.height * SwingFieldPanel.CellHeight)
+      controller.fieldWidth * SwingFieldPanel.CellWidth, 
+      controller.fieldHeight * SwingFieldPanel.CellHeight)
   }
 
   override def processNotification(sn:SimpleNotification) {
@@ -64,7 +65,7 @@ class SwingFieldPanel(val game:Game, name:String) extends Panel with SimpleSubsc
   }
 
   def findTile(p:swing.Point) : Tile = {
-    val tiles = game.sortedTiles.reverse
+    val tiles = controller.sortedTiles.reverse
     for (tile <- tiles) {
       val x = tile.x * SwingFieldPanel.CellWidth - 5
       val y = tile.y * SwingFieldPanel.CellHeight - 5 - 5 * tile.z
@@ -87,7 +88,7 @@ class SwingFieldPanel(val game:Game, name:String) extends Panel with SimpleSubsc
   override def paintComponent(g: Graphics2D) : Unit = {
     g.setColor(new Color(255, 255, 255))
     g.fillRect(0, 0, size.width, size.height)
-    val tiles = game.sortedTiles
+    val tiles = controller.sortedTiles
     for (tile <- tiles) {
       drawTile(g, tile)
     }
@@ -100,7 +101,7 @@ class SwingFieldPanel(val game:Game, name:String) extends Panel with SimpleSubsc
     val y = tile.y * SwingFieldPanel.CellHeight - 5 - 5 * tile.z
     g.drawImage(images("tile"), x, y, null)
     g.drawImage(images(tile.tileType.name), x, y, null)
-    if (showMoveables && !game.canMove(tile)) {
+    if (showMoveables && !controller.canMove(tile)) {
       g.drawImage(images("disabled"), x, y, null)
     } 
     if (showHint && (tile == hint.tile1 || tile == hint.tile2)) {

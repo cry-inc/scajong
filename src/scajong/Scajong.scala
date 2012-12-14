@@ -12,9 +12,9 @@ object Scajong {
   val controller = new Controller(game)
   
   def main(args: Array[String]) {
-    controller.attachView(new SwingView(game, "View 1"))
-    controller.attachView(new SwingView(game, "View 2"))
-    controller.attachView(new JettyView(game))
-    controller.attachView(new TextUI(game))
+    controller.attachView(new SwingView("View 1"))
+    controller.attachView(new SwingView("View 2"))
+    controller.attachView(new JettyView)
+    controller.attachView(new TextUI)
   }
 }

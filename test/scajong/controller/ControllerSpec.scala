@@ -49,8 +49,8 @@ class FakeView extends View {
   var stopped = false
   var startedGame:Game = null
   var stoppedGame:Game = null
-  override def startView(game:Game) { started = true; startedGame = game }
-  override def stopView(game:Game) { stopped = true; stoppedGame = game }
+  override def startView(controller:Controller) { started = true; }
+  override def stopView(controller:Controller) { stopped = true; }
   override def processNotification(sn:SimpleNotification) {}
 }
 
@@ -93,11 +93,11 @@ class ControllerSpec extends SpecificationWithJUnit {
       val clicked1 = new Tile(1, 0, 0, null)
       val clicked2 = new Tile(2, 0, 0, null)
       game.selected must beNull
-      view.sendNotification(new TileClickedNotification(clicked1))
+      //view.sendNotification(new TileClickedNotification(clicked1))
       game.selected must be_==(clicked1)
       game.played must beFalse
       game.playedTiles must beNull
-      view.sendNotification(new TileClickedNotification(clicked2))
+      //view.sendNotification(new TileClickedNotification(clicked2))
       game.played must beTrue
       game.playedTiles.tile1 must be_==(clicked1)
       game.playedTiles.tile2 must be_==(clicked2)
@@ -108,7 +108,7 @@ class ControllerSpec extends SpecificationWithJUnit {
       controller.attachView(view)
       val setup = new Setup("id", "name", "path")
       game.selectedSetup must beNull
-      view.sendNotification(new SetupSelectedNotification(setup))
+      //view.sendNotification(new SetupSelectedNotification(setup))
       game.selectedSetup must be_==(setup)
     }
     
@@ -116,9 +116,9 @@ class ControllerSpec extends SpecificationWithJUnit {
       val (game, view, controller) = createTestSetup
       controller.attachView(view)
       game.penaltySum must be_==(0)
-      view.sendNotification(new RequestHintNotification)
+      //view.sendNotification(new RequestHintNotification)
       game.penaltySum must be_==(15000)
-      view.sendNotification(new RequestMoveablesNotification)
+      //view.sendNotification(new RequestMoveablesNotification)
       game.penaltySum must be_==(20000)
     }
     
@@ -126,7 +126,7 @@ class ControllerSpec extends SpecificationWithJUnit {
       val (game, view, controller) = createTestSetup
       controller.attachView(view)
       view.stopped must beFalse
-      view.sendNotification(new CloseViewNotification(view))
+      //view.sendNotification(new CloseViewNotification(view))
       view.stopped must beTrue
     }
     
@@ -134,7 +134,7 @@ class ControllerSpec extends SpecificationWithJUnit {
       val (game, view, controller) = createTestSetup
       controller.attachView(view)
       game.scrambled must beFalse
-      view.sendNotification(new DoScrambleNotification)
+      //view.sendNotification(new DoScrambleNotification)
       game.scrambled must beTrue
     }
     
@@ -143,7 +143,7 @@ class ControllerSpec extends SpecificationWithJUnit {
       controller.attachView(view)
       val setup = new Setup("id", "name", "path")
       game.scores.getScores(setup) must have size(0)
-      view.sendNotification(new AddScoreNotification(setup, "name", 12345))
+      //view.sendNotification(new AddScoreNotification(setup, "name", 12345))
       game.scores.getScores(setup) must have size(1)
       new java.io.File(scoreFileName).delete
     }

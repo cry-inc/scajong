@@ -3,66 +3,70 @@ package scajong.view.tui
 import scajong.model._
 import scajong.view._
 import scajong.util._
+import scajong.controller._
 
 import scala.actors.Actor
 import util.matching.Regex
 
 // TODO: remove game contructor argument
-class TextUI(val game:Game) extends View with Actor {
+class TextUI() extends View with Actor {
 
   private var run = true
+  private var controller:Controller = null
 
   override def autoClose = true
   
   override def processNotification(sn:SimpleNotification) {}
   
-  override def startView(game:Game) {
+  override def startView(controller:Controller) {
+    this.controller = controller;
     start
   }
   
   def act {
+    // TODO: move input stuff into main
     loop
   }
   
   def playTiles(a:Int, b:Int) {
-    if (!game.tiles.contains(a))
+    if (!controller.tiles.contains(a))
       println("Could not find tile with id " + a + "!")
-    else if (!game.tiles.contains(b))
+    else if (!controller.tiles.contains(b))
       println("Could not find tile with id " + b + "!")
     else {
-      val tile1 = game.tiles(a)
-      val tile2 = game.tiles(b)
+      val tile1 = controller.tiles(a)
+      val tile2 = controller.tiles(b)
       if (tile1 == tile2) {
         println("You have to selected two different tiles!")
       } else if (tile1.tileType.id != tile2.tileType.id) {
         println("The tiles must be of the same type!")
-      } else if (!game.canMove(tile1) || !game.canMove(tile2)) {
+      } else if (!controller.canMove(tile1) || !controller.canMove(tile2)) {
         println("At least one the two selected tiles is not moveable!")
       } else {
-        sendNotification(new TileClickedNotification(tile1))
-        sendNotification(new TileClickedNotification(game.tiles(b)))
+        controller.selectTile(tile1)
+        controller.selectTile(tile2)
         printField(false)
       }
     }
   }
   
   def scramble {
-    sendNotification(new DoScrambleNotification)
+    controller.scramble
     printField(false)
   }
   
   def startGame(setupId:String) {
-    val setup = game.setupById(setupId)
+    val setup = controller.setupById(setupId)
     if (setup != null) {
-      sendNotification(new SetupSelectedNotification(setup))
+      controller.startNewGame(setup)
       printField(false)
     } else println("Invalid setup id!")
   }
   
   def showScores(setupId:String) {
-    val setup = game.setupById(setupId)
+    val setup = controller.setupById(setupId)
     if (setup != null) {
-      val scores = game.scores.getScores(setup)
+      val scores = controller.scores.getScores(setup)
       var i = 1
       for (score <- scores) {
         val time = (score.ms/1000.0)
@@ -137,43 +141,44 @@ class TextUI(val game:Game) extends View with Actor {
   }
   
   def close {
-    sendNotification(new CloseViewNotification(this))
+    controller.detachView(this)
     run = false
   }
 
   def printHint {
-    val hint = game.hint
+    // TODO: fix hint by printing messages from controller
+    val hint:TilePair = null
     if (hint != null) {
-      sendNotification(new RequestHintNotification)
-      println(game.calcTileIndex(hint.tile1) + " and " + game.calcTileIndex(hint.tile2))
+      controller.requestHint
+      println(controller.calcTileIndex(hint.tile1) + " and " + controller.calcTileIndex(hint.tile2))
     }
   }
 
   def printMoveables {
-    sendNotification(new RequestMoveablesNotification)
+    controller.requestMoveables
     printField(true)
   }
   
   def printSetups {
-    for (setup <- game.setups) {
+    for (setup <- controller.setups) {
       println("Id: " + setup.id + ", Name: " + setup.name)
     }
   }
   
   def printField(moveablesOnly : Boolean) {
     // TODO: Split into smaller methods
-    val line = "-" * (game.width * 3 + 2)
+    val line = "-" * (controller.fieldWidth * 3 + 2)
     println(line)
     var leftTile:Tile = null
-    for (y <- 0 until game.height; x <- 0 until game.width) {
+    for (y <- 0 until controller.fieldHeight; x <- 0 until controller.fieldWidth) {
       if (x == 0) print("|")
       
-      val tile = game.topmostTile(x, y)
+      val tile = controller.topmostTile(x, y)
       if (tile == null) {
         if (leftTile == null) print("   ") else print("|  ")
       } else {
-        val moveable = game.canMove(tile)
-        val id = game.calcTileIndex(tile)
+        val moveable = controller.canMove(tile)
+        val id = controller.calcTileIndex(tile)
         val (i1, i2, i3) = splitTileIdIntoStrings(id)
         
         var center = " "
@@ -205,7 +210,7 @@ class TextUI(val game:Game) extends View with Actor {
           print("  ")
       }
       
-      if (x == game.width - 1) {
+      if (x == controller.fieldWidth - 1) {
         print("|\n")
         leftTile = null
       } else {
