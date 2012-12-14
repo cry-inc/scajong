@@ -30,9 +30,9 @@ class JettyView(game:Game, port:Int = 8888) extends AbstractHandler with View {
   private var notifications = List[JsonNotification]()
   private var continuations = List[Continuation]()
   private var addScoreNotification:WonNotification = null
+  private var selectedTile:Tile = null
   
   server.setHandler(this);
-  game.addSubscriber(this)
   
   override def autoClose = true
   
@@ -51,7 +51,7 @@ class JettyView(game:Game, port:Int = 8888) extends AbstractHandler with View {
       case NoFurtherMovesNotification() => addNotification("NoFurtherMoves")
       case TileRemovedNotification(tile) => addNotification("UpdateField")
       case ScrambledNotification() => addNotification("UpdateField")
-      case SelectedTileNotification(tile) => addNotification("UpdateField")
+      case TileSelectedNotification(tile) => selectedTile = tile; addNotification("UpdateField")
       case CreatedGameNotification() => addNotification("NewGame")
       case NewScoreBoardEntryNotification(setup, position) => addNotification("ShowScore", setup.id, position.toString)
       // TODO: Looks stupid, change!
@@ -196,9 +196,9 @@ class JettyView(game:Game, port:Int = 8888) extends AbstractHandler with View {
     val tiles = game.sortedTiles.reverse
       var tilesJson = List[String]()
       tiles.foreach(tile => {
-      val selected = if (tile == game.selected) "true" else  "false"
-      val moveable = if (game.canMove(tile)) "true" else "false"
-      val hint = if (tile == hintPair.tile1 || tile == hintPair.tile2) "true" else "false"
+      val selectedStr = if (tile == selectedTile) "true" else  "false"
+      val moveableStr = if (game.canMove(tile)) "true" else "false"
+      val hintStr = if (tile == hintPair.tile1 || tile == hintPair.tile2) "true" else "false"
       val tileType = if (tile.tileType == null) "empty" else tile.tileType.name
       val tileTypeId = if (tile.tileType == null) "-1" else tile.tileType.id.toString
       tilesJson = "          {\n" +
@@ -207,9 +207,9 @@ class JettyView(game:Game, port:Int = 8888) extends AbstractHandler with View {
                   "              \"z\": " + tile.z + ",\n" +
                   "              \"type\": \"" + tileType + "\",\n" +
                   "              \"typeId\": " + tileTypeId + ",\n" +
-                  "              \"selected\": " + selected + ",\n" +
-                  "              \"hint\": " + hint + ",\n" +
-                  "              \"moveable\": " + moveable + "\n" +
+                  "              \"selected\": " + selectedStr + ",\n" +
+                  "              \"hint\": " + hintStr + ",\n" +
+                  "              \"moveable\": " + moveableStr + "\n" +
                   "          }" :: tilesJson
     })
     

@@ -9,7 +9,8 @@ import scajong.view._
 
 class Controller(val game:Game) extends SimpleSubscriber with SimplePublisher {
   
-  var views = List[View]()
+  private var views = List[View]()
+  private var selected:Tile = null
   
   override def processNotification(sn:SimpleNotification) {
     sn match {
@@ -41,16 +42,22 @@ class Controller(val game:Game) extends SimpleSubscriber with SimplePublisher {
   
   private def startNewGame(setup:Setup) {
     game.startNewGame(setup)
+    sendNotification(new CreatedGameNotification)
     sendNotification(new StopHintNotification)
     sendNotification(new StopMoveablesNotification)
   }
   
+  private def scramble {
+    game.scramble
+    sendNotification(new ScrambledNotification)
+  }
+  
   private def hint {
-    val (hint, timeout) = game.requestHint
-    sendNotification(new StartHintNotification(hint))
+    game.addHintPenalty
+    sendNotification(new StartHintNotification(game.hint))
     new Actor {
       def act {
-        reactWithin(timeout) {
+        reactWithin(Game.HintTimeout) {
           case TIMEOUT => sendNotification(new StopHintNotification)
         }
       }
@@ -58,31 +65,48 @@ class Controller(val game:Game) extends SimpleSubscriber with SimplePublisher {
   }
   
   private def moveables {
-    val timeout = game.requestMoveables
+    game.addMoveablesPenalty
     sendNotification(new StartMoveablesNotification)
     new Actor {
       def act {
-        reactWithin(timeout) {
+        reactWithin(Game.MoveablesTimeout) {
           case TIMEOUT => sendNotification(new StopMoveablesNotification)
         }
       }
     }.start();
   }
 
-  private def tileClicked(tile:Tile) {
-    if (game.canMove(tile)) {
-      val tmpSelected = game.selected
-      if (tmpSelected != null && tmpSelected.tileType == tile.tileType) {
-        game.selected = null
-        game.play(tmpSelected, tile)
+  private def tileClicked(clickedTile:Tile) {
+    if (game.canMove(clickedTile)) {
+      if (selected != null && selected.tileType == clickedTile.tileType) {
+        val selectedTile = selected
+        selected = null
+        sendNotification(new TileSelectedNotification(null))
+        playTilePair(selectedTile, clickedTile)
       } else {
-        game.selected = tile
+        selected = clickedTile
+        sendNotification(new TileSelectedNotification(selected))
+      }
+    }
+  }
+  
+  private def playTilePair(tile1:Tile, tile2:Tile) {
+    if (game.play(tile1, tile2)) {
+      sendNotification(new TileRemovedNotification(tile1))
+      sendNotification(new TileRemovedNotification(tile2))
+      if (game.tiles.size == 0) {
+        val time = game.gameTime
+        val inScoreBoard = game.scores.isInScoreboard(game.setup, time)
+        sendNotification(new WonNotification(game.setup, time, inScoreBoard))
+      } else if (!game.nextMovePossible) {
+        sendNotification(new NoFurtherMovesNotification)
       }
     }
   }
 
   private def addScore(setup:Setup, playerName:String, ms:Int) {
-    game.scores.addScore(setup, playerName, ms)
+    val position = game.scores.addScore(setup, playerName, ms)
+    sendNotification(new NewScoreBoardEntryNotification(setup, position))
   }
   
   def closeApplication {

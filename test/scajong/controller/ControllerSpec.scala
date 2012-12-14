@@ -19,7 +19,7 @@ class FakeGame(scoreFileName:String) extends Game {
   def -=(tile:Tile) {}
   var width = 1
   var height = 1
-  val scores = new Scores(scoreFileName, this)
+  val scores = new Scores(scoreFileName)
   val setups = List[Setup]()
   def setupById(id:String) : Setup = null
   def play(tile1:Tile, tile2:Tile) : Boolean = {
@@ -37,8 +37,11 @@ class FakeGame(scoreFileName:String) extends Game {
   def calcTileIndex(x:Int, y:Int, z:Int) : Int = 0
   def calcTileIndex(tile:Tile) : Int = 0
   def sortedTiles:List[Tile] = List[Tile]()
-  def requestHint:(TilePair,Int) = (null, 0)
-  def requestMoveables:Int = 0
+  def addHintPenalty {}
+  def addMoveablesPenalty {}
+  def nextMovePossible:Boolean = true
+  def gameTime:Int = 100000
+  def setup:Setup = null
 }
 
 class FakeView extends View {

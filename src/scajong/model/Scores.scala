@@ -17,7 +17,7 @@ object Scores {
   val separator = "####"
 }
 
-class Scores(scoreFile:String, publisher:SimplePublisher) {
+class Scores(scoreFile:String) {
 
   var scores = List[ScoreEntry]()
   
@@ -39,13 +39,13 @@ class Scores(scoreFile:String, publisher:SimplePublisher) {
       scores.count(e => e.setupId == setup.id && e.ms < ms)
   }
 
-  def addScore(setup:Setup, name:String, ms:Int) {
+  def addScore(setup:Setup, name:String, ms:Int) : Int = {
     if (isInScoreboard(setup, ms)) {
       val position = getScorePosition(setup, ms)
       scores = new ScoreEntry(setup.id, name, ms) :: scores
       saveScores
-      publisher.sendNotification(new NewScoreBoardEntryNotification(setup, position))
-    }
+      position
+    } else -1
   }
 
   private def saveScores {

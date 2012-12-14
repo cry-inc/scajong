@@ -22,7 +22,6 @@ class SwingView(game:Game, name:String = "") extends Frame with View {
     def notification(setup:Setup) = new ScoreSelectedEvent(setup)
   }
 
-  game.addSubscriber(this)
   listenTo(fieldPanel)
   listenTo(scorePanel)
   listenTo(setupSelectPanel)
@@ -81,8 +80,6 @@ class SwingView(game:Game, name:String = "") extends Frame with View {
     selectPanel(setupSelectPanel)
   
   def closeView {
-    game.remSubscriber(fieldPanel)
-    game.remSubscriber(this)
     sendNotification(new CloseViewNotification(this))
     dispose
   }

@@ -41,7 +41,7 @@ class ScoresSpec extends SpecificationWithJUnit {
     val setup2 = new Setup("id2", "Name 2", "path/to/setup2.txt")
     val scoreFileName = "scores_test.txt"
     new java.io.File(scoreFileName).delete
-    val scores = new Scores(scoreFileName, publisher)
+    val scores = new Scores(scoreFileName)
     scores.addScore(setup1, "Otto", 12345)
     scores.addScore(setup1, "Willi", 18345)
     for (i <- 1 to Scores.PerSetupEntries) scores.addScore(setup2, "Heiner", 10000 * i)

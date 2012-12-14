@@ -10,7 +10,7 @@ object Game {
   val MoveablesTimeout = 5000
 }
 
-trait Game extends SimplePublisher {
+trait Game {
   
   // Tiles & TileTypes
   def tileTypes:IndexedSeq[TileType]
@@ -29,16 +29,16 @@ trait Game extends SimplePublisher {
   def scores:Scores
   def setups:List[Setup]
   def setupById(id:String) : Setup
+  def setup : Setup
   
   // Game logic
-  def play(tile1:Tile, tile2:Tile) : Boolean // can send TilesChanged, Won or NoFurtherMoves notifications
-  def hint : TilePair
-  def startNewGame(setup:Setup) // sends CreatedGame notification
-  def scramble // sends Scrambled notification
-  def selected:Tile
-  def selected_=(tile:Tile) // sends SelectedTile notification
-  def requestHint:(TilePair,Int) // the user wants a hint. also adds the according penalty
-  def requestMoveables:Int // the user wants a moveables hint. adds also a penalty
+  def play(tile1:Tile, tile2:Tile) : Boolean
+  def hint:TilePair
+  def startNewGame(setup:Setup)
+  def scramble
+  def addHintPenalty
+  def addMoveablesPenalty
+  def gameTime:Int
   
   // Tile logic
   def canMove(tile:Tile) : Boolean
@@ -47,4 +47,5 @@ trait Game extends SimplePublisher {
   def calcTileIndex(x:Int, y:Int, z:Int) : Int
   def calcTileIndex(tile:Tile) : Int
   def sortedTiles:List[Tile]
+  def nextMovePossible:Boolean
 }

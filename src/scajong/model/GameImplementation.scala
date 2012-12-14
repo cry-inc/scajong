@@ -17,18 +17,10 @@ class GameImplementation private (scoreFile:String, setupsDir:String, tileFile:S
   var tiles = Map[Int, Tile]()
   val tileTypes = TileType.LoadTileTypes(tileFile)
   val setups = Setup.CreateSetupsList(setupsDir)
-  val scores = new Scores(scoreFile, this)
-  private var _selected:Tile = null
+  val scores = new Scores(scoreFile)
   private var currentSetup:Setup = null
   private var startTime : Long = 0
   private var penalty = 0
-
-  def selected = _selected
-
-  def selected_=(newSelected:Tile) {
-    _selected = newSelected;
-    sendNotification(new SelectedTileNotification(_selected))
-  }
 
   def calcTileIndex(tile:Tile) : Int = {
     calcTileIndex(tile.x, tile.y, tile.z)
@@ -36,10 +28,6 @@ class GameImplementation private (scoreFile:String, setupsDir:String, tileFile:S
 
   def calcTileIndex(x:Int, y:Int, z:Int) = {
     z * width * height + y * width + x
-  }
-
-  def addPenalty(ms:Int) {
-    if (ms > 0) penalty += ms
   }
 
   def +=(tile:Tile) {
@@ -100,6 +88,7 @@ class GameImplementation private (scoreFile:String, setupsDir:String, tileFile:S
   def play(tile1:Tile, tile2:Tile) : Boolean = {
     if (startTime == 0)
       startTime = System.currentTimeMillis
+    
     if (tile1 == tile2)
       false
     else if (tile1.tileType != tile2.tileType)
@@ -108,27 +97,17 @@ class GameImplementation private (scoreFile:String, setupsDir:String, tileFile:S
       false
     else {
       -=(tile1)
-      sendNotification(new TileRemovedNotification(tile1))
       -=(tile2)
-      sendNotification(new TileRemovedNotification(tile2))
-      if (tiles.size == 0) {
-        val time = (System.currentTimeMillis - startTime).toInt + penalty
-        val inScoreBoard = scores.isInScoreboard(currentSetup, time)
-         sendNotification(new WonNotification(currentSetup, time, inScoreBoard))
-      } else if (!nextMovePossible)
-        sendNotification(new NoFurtherMovesNotification)
       true
     }
   }
 
-  def requestHint:(TilePair,Int) = {
-    addPenalty(Game.HintPenalty)
-    (hint, Game.HintTimeout)
+  def addHintPenalty {
+    penalty += Game.HintPenalty
   }
   
-  def requestMoveables:Int = {
-    addPenalty(Game.MoveablesPenalty)
-    Game.HintTimeout
+  def addMoveablesPenalty {
+    penalty += Game.MoveablesPenalty
   }
   
   def hint : TilePair = {
@@ -145,15 +124,12 @@ class GameImplementation private (scoreFile:String, setupsDir:String, tileFile:S
 
   def setupById(setupId:String) = {
     val filtered = setups.filter(_.id == setupId)
-    if (filtered.length == 1)
-      filtered(0)
-    else
-      null
+    if (filtered.length == 1) filtered(0)
+    else null
   }
 
   def scramble {
     generator.scramble(this)
-    sendNotification(new ScrambledNotification)
   }
 
   def startNewGame(setup:Setup) {
@@ -161,6 +137,13 @@ class GameImplementation private (scoreFile:String, setupsDir:String, tileFile:S
     startTime = 0
     penalty = 0
     currentSetup = setup
-    sendNotification(new CreatedGameNotification)
+  }
+  
+  def gameTime : Int = {
+    (System.currentTimeMillis - startTime).toInt + penalty
+  }
+  
+  def setup : Setup = {
+    currentSetup
   }
 }

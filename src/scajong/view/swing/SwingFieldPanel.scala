@@ -22,6 +22,7 @@ class SwingFieldPanel(val game:Game, name:String) extends Panel with SimpleSubsc
   private var showHint = false
   private var showMoveables = false
   private var hint:TilePair = null
+  private var selectedTile:Tile = null
   updateSize
   loadImages
 
@@ -40,7 +41,7 @@ class SwingFieldPanel(val game:Game, name:String) extends Panel with SimpleSubsc
   override def processNotification(sn:SimpleNotification) {
     sn match {
       case TileRemovedNotification(tile) => repaint
-      case SelectedTileNotification(tile) => repaint
+      case TileSelectedNotification(tile) => selectedTile = tile; repaint
       case CreatedGameNotification() => repaint
       case ScrambledNotification() => repaint
       case StartHintNotification(hintPair) => showHint = true; hint = hintPair; repaint
@@ -105,7 +106,7 @@ class SwingFieldPanel(val game:Game, name:String) extends Panel with SimpleSubsc
     if (showHint && (tile == hint.tile1 || tile == hint.tile2)) {
       g.drawImage(images("hint"), x, y, null)
     }
-    if (tile == game.selected) {
+    if (tile == selectedTile) {
       g.drawImage(images("selected"), x, y, null)
     }
   }
