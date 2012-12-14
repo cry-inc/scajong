@@ -83,7 +83,8 @@
             }
             
             function redraw() {
-                var canvas = document.getElementById('field');
+                if (typeof field === 'undefined') return;
+				var canvas = document.getElementById('field');
                 canvas.width = field['fieldwidth'] * CellWidth;
                 canvas.height = field['fieldheight'] * CellHeight;
                 var context = canvas.getContext('2d');

@@ -14,7 +14,7 @@ class FakeSubscriber extends SimpleSubscriber {
   var wonMs = 0
   def processNotification(sn: SimpleNotification) {
     sn match {
-      case n:TilesChangedNotification => tilesChanged = true
+      case n:TileRemovedNotification => tilesChanged = true
       case n:CreatedGameNotification => started = true
       case n:ScrambledNotification => scrambled = true
       case n:WonNotification => wonMs = n.ms; won = true

@@ -21,7 +21,6 @@ class GameImplementation private (scoreFile:String, setupsDir:String, tileFile:S
   private var _selected:Tile = null
   private var currentSetup:Setup = null
   private var startTime : Long = 0
-  private var sendTileChangedEvent = true
   private var penalty = 0
 
   def selected = _selected
@@ -45,16 +44,10 @@ class GameImplementation private (scoreFile:String, setupsDir:String, tileFile:S
 
   def +=(tile:Tile) {
     tiles += (calcTileIndex(tile) -> tile)
-    if (sendTileChangedEvent) {
-      sendNotification(new TilesChangedNotification)
-    }
   }
 
   def -=(tile:Tile) {
     tiles -= calcTileIndex(tile)
-    if (sendTileChangedEvent) {
-      sendNotification(new TilesChangedNotification)
-    }
   }
 
   def sortedTiles() : List[Tile] = {
@@ -115,7 +108,9 @@ class GameImplementation private (scoreFile:String, setupsDir:String, tileFile:S
       false
     else {
       -=(tile1)
-      -=(tile2);
+      sendNotification(new TileRemovedNotification(tile1))
+      -=(tile2)
+      sendNotification(new TileRemovedNotification(tile2))
       if (tiles.size == 0) {
         val time = (System.currentTimeMillis - startTime).toInt + penalty
         val inScoreBoard = scores.isInScoreboard(currentSetup, time)
@@ -157,16 +152,12 @@ class GameImplementation private (scoreFile:String, setupsDir:String, tileFile:S
   }
 
   def scramble {
-    sendTileChangedEvent = false
     generator.scramble(this)
-    sendTileChangedEvent = true
     sendNotification(new ScrambledNotification)
   }
 
   def startNewGame(setup:Setup) {
-    sendTileChangedEvent = false
     generator.generate(this, setup.path)
-    sendTileChangedEvent = true
     startTime = 0
     penalty = 0
     currentSetup = setup

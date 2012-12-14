@@ -15,7 +15,7 @@ class Controller(val game:Game) extends SimpleSubscriber with SimplePublisher {
     sn match {
       case TileClickedNotification(tile) => tileClicked(tile)
       case SetupSelectedNotification(setup) => startNewGame(setup)
-      case RequestHintNotification() => hint; println("request")
+      case RequestHintNotification() => hint
       case RequestMoveablesNotification() => moveables
       case AddScoreNotification(setup, playerName, ms) => addScore(setup, playerName, ms)
       case CloseViewNotification(view) => detachView(view)
@@ -40,9 +40,9 @@ class Controller(val game:Game) extends SimpleSubscriber with SimplePublisher {
   }
   
   private def startNewGame(setup:Setup) {
+    game.startNewGame(setup)
     sendNotification(new StopHintNotification)
     sendNotification(new StopMoveablesNotification)
-    game.startNewGame(setup)
   }
   
   private def hint {

@@ -72,6 +72,8 @@
             }
             
             function rebuild() {
+                if (typeof field === 'undefined') return;
+
                 scene = new THREE.Scene();
                 objects = [];
 

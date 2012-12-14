@@ -39,7 +39,7 @@ class SwingFieldPanel(val game:Game, name:String) extends Panel with SimpleSubsc
 
   override def processNotification(sn:SimpleNotification) {
     sn match {
-      case TilesChangedNotification() => repaint
+      case TileRemovedNotification(tile) => repaint
       case SelectedTileNotification(tile) => repaint
       case CreatedGameNotification() => repaint
       case ScrambledNotification() => repaint

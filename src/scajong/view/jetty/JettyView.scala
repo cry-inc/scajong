@@ -17,7 +17,7 @@ class JsonNotification(val name:String, val id:Int, val param1:String = "", val 
     "            \"name\": \"" + name + "\",\n" +
     "            \"id\": " + id + ",\n" +
     "            \"param1\": \"" + param1 + "\",\n" +
-    "             \"param2\": \"" + param2 + "\"\n" +
+    "            \"param2\": \"" + param2 + "\"\n" +
     "        }"
   }
 }
@@ -49,7 +49,7 @@ class JettyView(game:Game, port:Int = 8888) extends AbstractHandler with View {
   override def processNotification(sn:SimpleNotification) {
     sn match {
       case NoFurtherMovesNotification() => addNotification("NoFurtherMoves")
-      case TilesChangedNotification() => addNotification("UpdateField")
+      case TileRemovedNotification(tile) => addNotification("UpdateField")
       case ScrambledNotification() => addNotification("UpdateField")
       case SelectedTileNotification(tile) => addNotification("UpdateField")
       case CreatedGameNotification() => addNotification("NewGame")
