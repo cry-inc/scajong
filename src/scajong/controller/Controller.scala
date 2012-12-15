@@ -83,15 +83,18 @@ class Controller(val game:Game) extends SimplePublisher {
     if (newSelectedTile == null) {
       selected = null
       sendNotification(new TileSelectedNotification(selected))
+    } else if (newSelectedTile == selected) {
+      // Nothing to do!
     } else if (game.canMove(newSelectedTile)) {
       if (selected != null && selected.tileType == newSelectedTile.tileType) {
         val selectedTile = selected
         selected = null
+        sendNotification(new TileSelectedNotification(selected))
         playTilePair(selectedTile, newSelectedTile)
       } else {
         selected = newSelectedTile
+        sendNotification(new TileSelectedNotification(selected))
       }
-      sendNotification(new TileSelectedNotification(selected))
     }
   }
   
