@@ -65,7 +65,6 @@ class GameImplementationSpec extends SpecificationWithJUnit {
       game.selected must be_==(tile)
       subscriber.selected must beTrue
     }
-    */
     
     "can calculate a tile index" in {
       val (game, testSetup, subscriber) = createTestObjects
@@ -77,6 +76,7 @@ class GameImplementationSpec extends SpecificationWithJUnit {
       val tile = new Tile(2, 1, 0, null)
       game.calcTileIndex(tile) must be_==(8)
     }
+    */
     
     "can have tiles added and removed" in {
       val (game, testSetup, subscriber) = createTestObjects

@@ -5,19 +5,18 @@ import io.Source
 
 object GameImplementation {
   def create(scoreFile:String = "scores.txt", tilesFile:String = "tiles.txt", setupsDir:String = "setups/") : Game = {
-    // TODO: construct setups and tiles in seperate steps
+    val tileTypes = TileType.LoadTileTypes(tilesFile)
+    val scores = new Scores(scoreFile)
+    val setups = Setup.CreateSetupsList(setupsDir)
     val generator:Generator = new ReverseGenerator
-    new GameImplementation(scoreFile, setupsDir, tilesFile, generator)
+    new GameImplementation(tileTypes, scores, setups, generator)
   }
 }
 
-class GameImplementation private (scoreFile:String, setupsDir:String, tileFile:String, generator:Generator) extends Game {
+class GameImplementation private (val tileTypes:IndexedSeq[TileType], val scores:Scores, val setups:List[Setup], generator:Generator) extends Game {
   var width = 40
   var height = 26
   var tiles = Map[Int, Tile]()
-  val tileTypes = TileType.LoadTileTypes(tileFile)
-  val setups = Setup.CreateSetupsList(setupsDir)
-  val scores = new Scores(scoreFile)
   private var currentSetup:Setup = null
   private var startTime : Long = 0
   private var penalty = 0
@@ -111,8 +110,7 @@ class GameImplementation private (scoreFile:String, setupsDir:String, tileFile:S
   }
   
   def hint : TilePair = {
-    // TODO: rewrite without return
-    var moveableTiles = tiles.map(_._2).filter(canMove(_))
+    val moveableTiles = tiles.map(_._2).filter(canMove(_))
     for (i <- moveableTiles; j <- moveableTiles) {
       if (i != j && j.tileType == i.tileType)
         return new TilePair(i, j)
