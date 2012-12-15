@@ -53,15 +53,18 @@ class Controller(val game:Game) extends SimplePublisher {
   }
   
   def requestHint {
-    game.addHintPenalty
-    sendNotification(new StartHintNotification(game.hint))
-    new Actor {
-      def act {
-        reactWithin(Game.HintTimeout) {
-          case TIMEOUT => sendNotification(new StopHintNotification)
+    val hint = game.hint
+    if (hint != null) {
+      game.addHintPenalty
+      sendNotification(new StartHintNotification(hint))
+      new Actor {
+        def act {
+          reactWithin(Game.HintTimeout) {
+            case TIMEOUT => sendNotification(new StopHintNotification)
+          }
         }
-      }
-    }.start();
+      }.start();
+    }
   }
   
   def requestMoveables {
