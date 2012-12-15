@@ -24,6 +24,7 @@ class SwingFieldPanel(val controller:Controller) extends Panel with SimpleSubscr
   private var showMoveables = false
   private var hint:TilePair = null
   private var selectedTile:Tile = null
+  private var noMoves = false
   updateSize
   loadImages
 
@@ -43,13 +44,13 @@ class SwingFieldPanel(val controller:Controller) extends Panel with SimpleSubscr
     sn match {
       case TilesRemovedNotification(tiles) => repaint
       case TileSelectedNotification(tile) => selectedTile = tile; repaint
-      case CreatedGameNotification() => repaint
-      case ScrambledNotification() => repaint
+      case CreatedGameNotification() => noMoves = false; repaint
+      case ScrambledNotification() => noMoves = false; repaint
       case StartHintNotification(hintPair) => showHint = true; hint = hintPair; repaint
       case StopHintNotification() => showHint = false; repaint
       case StartMoveablesNotification() => showMoveables = true; repaint
       case StopMoveablesNotification() => showMoveables = false; repaint
-      case NoFurtherMovesNotification() => // TODO: Ask for scramble
+      case NoFurtherMovesNotification() => noMoves = true; repaint
       case _ => // Do Nothing
     }
   }
@@ -88,6 +89,10 @@ class SwingFieldPanel(val controller:Controller) extends Panel with SimpleSubscr
   override def paintComponent(g: Graphics2D) : Unit = {
     g.setColor(new Color(255, 255, 255))
     g.fillRect(0, 0, size.width, size.height)
+    if (noMoves) {
+      g.setColor(new Color(255, 0, 0))
+      g.drawString("No further moves. You should scramble!", 10, 20)
+    }
     val tiles = controller.sortedTiles
     for (tile <- tiles) {
       drawTile(g, tile)
