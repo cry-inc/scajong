@@ -23,7 +23,6 @@ class JsonNotification(val name:String, val id:Int, val param1:String = "", val 
   }
 }
 
-// TODO: remove game contructor argument
 class JettyView(port:Int = 8888) extends AbstractHandler with View {
   
   private var controller:Controller = null
@@ -31,7 +30,8 @@ class JettyView(port:Int = 8888) extends AbstractHandler with View {
   private val server = new Server(port)
   private var notifications = List[JsonNotification]()
   private var continuations = List[Continuation]()
-  private var addScoreNotification:WonNotification = null
+  private var currentSetup:Setup = null
+  private var currentMs = 0
   private var selectedTile:Tile = null
   
   server.setHandler(this);
@@ -56,8 +56,7 @@ class JettyView(port:Int = 8888) extends AbstractHandler with View {
       case TileSelectedNotification(tile) => selectedTile = tile; addNotification("UpdateField")
       case CreatedGameNotification() => addNotification("NewGame")
       case NewScoreBoardEntryNotification(setup, position) => addNotification("ShowScore", setup.id, position.toString)
-      // TODO: Looks stupid, change!
-      case wn:WonNotification => won(wn)
+      case WonNotification(setup, ms, inScoreBoard) => won(setup, ms, inScoreBoard)
       case StartHintNotification(hintPair) => addNotification("StartHint")
       case StopHintNotification() => addNotification("StopHint")
       case StartMoveablesNotification() => addNotification("StartMoveables")
@@ -65,11 +64,12 @@ class JettyView(port:Int = 8888) extends AbstractHandler with View {
     }
   }
   
-  private def won(wn:WonNotification) {
-    if (wn.inScoreBoard) {
-      addScoreNotification = wn
+  private def won(setup:Setup, ms:Int, inScoreBoard:Boolean) {
+    if (inScoreBoard) {
+      currentSetup = setup
+      currentMs = ms
       addNotification("AddScore")
-    } else addNotification("ShowScore", wn.setup.id)
+    } else addNotification("ShowScore", setup.id)
   }
   
   private def s2i(str:String) = {
@@ -305,9 +305,9 @@ class JettyView(port:Int = 8888) extends AbstractHandler with View {
           controller.startNewGame(setup)
       }
       case addScoreRegex(name) => {
-        if (addScoreNotification != null) {
-          controller.addScore(addScoreNotification.setup, name, addScoreNotification.ms)
-          addScoreNotification = null
+        if (currentSetup != null) {
+          controller.addScore(currentSetup, name, currentMs)
+          currentSetup = null
         }
       }
       case "hint" => controller.requestHint
