@@ -17,13 +17,16 @@ class Controller(val game:Game) extends SimplePublisher {
     view.startView(this)
     views = view :: views
   }
-
+  
   def detachView(view:View) {
     view.stopView(this)
     this.remSubscriber(view)
     views = views.filter(v => v != view)
     val withoutAutoClose = views.filter(!_.autoClose)
-    if (withoutAutoClose.length == 0) closeApplication
+    if (withoutAutoClose.length == 0) {
+      views.foreach(_.stopView(this))
+    }
+    closeApplication
   }
   
   def scores = game.scores
@@ -81,8 +84,10 @@ class Controller(val game:Game) extends SimplePublisher {
 
   def selectTile(newSelectedTile:Tile) {
     if (newSelectedTile == null) {
-      selected = null
-      sendNotification(new TileSelectedNotification(selected))
+      if (selected != null) {
+        selected = null
+        sendNotification(new TileSelectedNotification(selected))
+      }
     } else if (newSelectedTile == selected) {
       // Nothing to do!
     } else if (game.canMove(newSelectedTile)) {

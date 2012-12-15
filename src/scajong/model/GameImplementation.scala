@@ -4,7 +4,7 @@ import scajong.util._
 import io.Source
 
 object GameImplementation {
-  def create(scoreFile:String = "scores.txt", tilesFile:String = "tiles.txt", setupsDir:String = "setups/") : Game = {
+  def create(scoreFile:String = "scores.txt", tilesFile:String = "tiles.txt", setupsDir:String = "setups/") = {
     val tileTypes = TileType.LoadTileTypes(tilesFile)
     val scores = new Scores(scoreFile)
     val setups = Setup.CreateSetupsList(setupsDir)
