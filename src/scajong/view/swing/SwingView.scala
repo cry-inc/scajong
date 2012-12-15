@@ -55,8 +55,7 @@ class SwingView(name:String = "") extends Frame with View {
     sn match {
       case WonNotification(setup, ms, inScoreBoard) => won(setup, ms, inScoreBoard)
       case CreatedGameNotification() => fieldPanel.updateSize; selectPanel(fieldPanel); pack
-      // TODO: highlight position in swing view table
-      case NewScoreBoardEntryNotification(setup, position) => scorePanel.showScores(setup); selectPanel(scorePanel)
+      case NewScoreBoardEntryNotification(setup, position) => scorePanel.showScores(setup, position); selectPanel(scorePanel)
       // Forward all other notifications to the field panel
       case _ => fieldPanel.processNotification(sn)
     }
@@ -75,11 +74,14 @@ class SwingView(name:String = "") extends Frame with View {
         closeView
       })
     }
-    contents += new Menu("Cheats") {
-      contents += new MenuItem(Action("Show Moveables (+5 sec)") {
+    contents += new Menu("Actions") {
+      contents += new MenuItem(Action("Scramble") {
+        controller.scramble
+      })
+      contents += new MenuItem(Action("Show Moveables (+" + (Game.MoveablesPenalty / 1000.0) + " sec)") {
         controller.requestMoveables
       })
-      contents += new MenuItem(Action("Show Hint (+15 sec)") {
+      contents += new MenuItem(Action("Show Hint (+" + (Game.HintPenalty / 1000.0) + " sec)") {
         controller.requestHint
       })
     }
@@ -104,9 +106,8 @@ class SwingView(name:String = "") extends Frame with View {
     if (inScoreBoard) {
       scorePanel.addScore(setup, ms)
     } else {
-      // TODO: Remove dialog
-      Dialog.showMessage(null, "Your time: " + (ms / 1000.0) + " seconds", "Missed scoreboard entry")
-      scorePanel.showScores(setup)
+      val message = "Your time: " + (ms / 1000.0) + " sec"
+      scorePanel.showScores(setup, -1, message)
     }
     selectPanel(scorePanel)
   }

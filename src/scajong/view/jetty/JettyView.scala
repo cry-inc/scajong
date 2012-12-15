@@ -195,14 +195,13 @@ class JettyView(port:Int = 8888) extends AbstractHandler with View {
   }
 
   def buildFieldJson = {
-    // TODO: Remove hint from controller!
-    val hintPair = controller.hint
+    var hint = controller.hint
     val tiles = controller.sortedTiles.reverse
-      var tilesJson = List[String]()
-      tiles.foreach(tile => {
+    var tilesJson = List[String]()
+    tiles.foreach(tile => {
       val selectedStr = if (tile == selectedTile) "true" else  "false"
       val moveableStr = if (controller.canMove(tile)) "true" else "false"
-      val hintStr = if (tile == hintPair.tile1 || tile == hintPair.tile2) "true" else "false"
+      val hintStr = if (hint != null && (tile == hint.tile1 || tile == hint.tile2)) "true" else "false"
       val tileType = if (tile.tileType == null) "empty" else tile.tileType.name
       val tileTypeId = if (tile.tileType == null) "-1" else tile.tileType.id.toString
       tilesJson = "          {\n" +
