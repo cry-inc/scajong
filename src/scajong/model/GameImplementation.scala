@@ -138,7 +138,13 @@ class GameImplementation private (val tileTypes:IndexedSeq[TileType], val scores
   }
   
   def gameTime : Int = {
-    (System.currentTimeMillis - startTime).toInt + penalty
+    if (startTime == 0) {
+      penalty
+    } else {
+      val elapsed = System.currentTimeMillis - startTime
+      println(elapsed)
+      elapsed.toInt + penalty
+    }
   }
   
   def setup : Setup = {

@@ -9,7 +9,7 @@ import scajong.util.SimpleNotification
 class FakeGame(scoreFileName:String) extends Game {
   var played = false
   var playedTiles:TilePair = null
-  var selectedSetup:Setup = null
+  var newGameSetup:Setup = null
   var penaltySum = 0
   var scrambled = false
   var tileTypes = IndexedSeq[TileType]()
@@ -27,30 +27,28 @@ class FakeGame(scoreFileName:String) extends Game {
     playedTiles = new TilePair(tile1, tile2);
     true
   }
-  def hint : TilePair = null
-  def startNewGame(setup:Setup) { selectedSetup = setup }
+  def hint = new TilePair(null, null)
+  def startNewGame(setup:Setup) { newGameSetup = setup }
   def scramble { scrambled = true }
-  def addPenalty(ms:Int) { penaltySum += ms }
   def canMove(tile:Tile) : Boolean = true
   def topmostTile(x:Int, y:Int) : Tile = null
   def findTile(x:Double, y:Double, z:Double) : Tile = null
-  def calcTileIndex(x:Int, y:Int, z:Int) : Int = 0
   def calcTileIndex(tile:Tile) : Int = 0
   def sortedTiles:List[Tile] = List[Tile]()
-  def addHintPenalty {}
-  def addMoveablesPenalty {}
-  def nextMovePossible:Boolean = true
-  def gameTime:Int = 100000
+  def addHintPenalty { penaltySum += Game.HintPenalty }
+  def addMoveablesPenalty { penaltySum += Game.MoveablesPenalty }
+  def nextMovePossible = true
+  def gameTime = 100000
   def setup:Setup = null
 }
 
 class FakeView extends View {
   var started = false
   var stopped = false
-  var startedGame:Game = null
-  var stoppedGame:Game = null
-  override def startView(controller:Controller) { started = true; }
-  override def stopView(controller:Controller) { stopped = true; }
+  var startedController:Controller = null
+  var stoppedController:Controller = null
+  override def startView(controller:Controller) { startedController = controller; started = true; }
+  override def stopView(controller:Controller) { stoppedController = controller; stopped = true; }
   override def processNotification(sn:SimpleNotification) {}
 }
 
@@ -72,61 +70,61 @@ class ControllerSpec extends SpecificationWithJUnit {
     "be able to attach a view" in {
       val (game, view, controller) = createTestSetup
       view.started must beFalse
-      view.startedGame must beNull
+      view.startedController must beNull
       controller.attachView(view)
       view.started must beTrue
-      view.startedGame must be_==(game)
+      view.startedController must be_==(controller)
     }
     
     "be able to detach a view" in {
       val (game, view, controller) = createTestSetup
       view.stopped must beFalse
-      view.stoppedGame must beNull
+      view.stoppedController must beNull
       controller.detachView(view)
       view.stopped must beTrue
-      view.stoppedGame must be_==(game)
+      view.stoppedController must be_==(controller)
     }
     
-    "can process TileClicked notifications" in {
+    //TODO: check notifications from controller!
+    
+    "can select tiles" in {
       val (game, view, controller) = createTestSetup
       controller.attachView(view)
       val clicked1 = new Tile(1, 0, 0, null)
       val clicked2 = new Tile(2, 0, 0, null)
-      game.selected must beNull
-      //view.sendNotification(new TileClickedNotification(clicked1))
-      game.selected must be_==(clicked1)
       game.played must beFalse
       game.playedTiles must beNull
-      //view.sendNotification(new TileClickedNotification(clicked2))
+      controller.selectTile(clicked1)
+      controller.selectTile(clicked2)
       game.played must beTrue
       game.playedTiles.tile1 must be_==(clicked1)
       game.playedTiles.tile2 must be_==(clicked2)
     }
     
-    "can process SetupSelected notifications" in {
+    "can start new games" in {
       val (game, view, controller) = createTestSetup
       controller.attachView(view)
       val setup = new Setup("id", "name", "path")
-      game.selectedSetup must beNull
-      //view.sendNotification(new SetupSelectedNotification(setup))
-      game.selectedSetup must be_==(setup)
+      game.newGameSetup must beNull
+      controller.startNewGame(setup)
+      game.newGameSetup must be_==(setup)
     }
     
-    "can process Hint and Moveables notifications" in {
+    "can request hints and moveables" in {
       val (game, view, controller) = createTestSetup
       controller.attachView(view)
       game.penaltySum must be_==(0)
-      //view.sendNotification(new RequestHintNotification)
-      game.penaltySum must be_==(15000)
-      //view.sendNotification(new RequestMoveablesNotification)
-      game.penaltySum must be_==(20000)
+      controller.requestHint
+      game.penaltySum must be_>=(Game.HintPenalty)
+      controller.requestMoveables
+      game.penaltySum must be_>=(Game.HintPenalty + Game.MoveablesPenalty)
     }
     
     "can process CloseView notifications" in {
       val (game, view, controller) = createTestSetup
       controller.attachView(view)
       view.stopped must beFalse
-      //view.sendNotification(new CloseViewNotification(view))
+      controller.detachView(view)
       view.stopped must beTrue
     }
     
@@ -134,7 +132,7 @@ class ControllerSpec extends SpecificationWithJUnit {
       val (game, view, controller) = createTestSetup
       controller.attachView(view)
       game.scrambled must beFalse
-      //view.sendNotification(new DoScrambleNotification)
+      controller.scramble
       game.scrambled must beTrue
     }
     
@@ -143,7 +141,7 @@ class ControllerSpec extends SpecificationWithJUnit {
       controller.attachView(view)
       val setup = new Setup("id", "name", "path")
       game.scores.getScores(setup) must have size(0)
-      //view.sendNotification(new AddScoreNotification(setup, "name", 12345))
+      controller.addScore(setup, "name", 12345)
       game.scores.getScores(setup) must have size(1)
       new java.io.File(scoreFileName).delete
     }
