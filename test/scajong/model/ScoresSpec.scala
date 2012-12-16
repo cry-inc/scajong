@@ -1,7 +1,6 @@
 package scajong.model
 
 import scajong.util._
-import scajong.util.SimpleNotification
 import org.specs2.mutable._
 
 class ScoresSpec extends SpecificationWithJUnit {
@@ -27,16 +26,6 @@ class ScoresSpec extends SpecificationWithJUnit {
   }
   
   "A Scores instance" should {
-    val publisher = new SimplePublisher {}
-    val subscriber = new SimpleSubscriber {
-      var notificated = false
-      def processNotification(n:SimpleNotification) {
-        n match {
-          case sn: NewScoreBoardEntryNotification => notificated = true
-        }
-      }
-    }
-    publisher.addSubscriber(subscriber)
     val setup1 = new Setup("id1", "Name 1", "path/to/setup1.txt")
     val setup2 = new Setup("id2", "Name 2", "path/to/setup2.txt")
     val scoreFileName = "scores_test.txt"
