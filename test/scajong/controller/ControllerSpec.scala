@@ -10,6 +10,9 @@ class FakeGame(scoreFileName:String) extends Game {
   val testSetup = new Setup("Bla", "bla", "path")
   val hintPair = new TilePair(null, null)
   val sorted = List[Tile]()
+  val noNextMoveTile1 = new Tile(1, 2, 3, null)
+  val noNextMoveTile2 = new Tile(4, 5, 6, null)
+  var nextMovePossibleResult = true
   var played = false
   var playedTiles:TilePair = null
   var newGameSetup:Setup = null
@@ -29,6 +32,11 @@ class FakeGame(scoreFileName:String) extends Game {
   def play(tile1:Tile, tile2:Tile) : Boolean = {
     played = true;
     playedTiles = new TilePair(tile1, tile2);
+    if (tile1 == noNextMoveTile1 && tile2 == noNextMoveTile2) {
+      tiles += (0 -> tile1)
+      tiles += (1 -> tile2)
+      nextMovePossibleResult = false
+    }
     true
   }
   def hint = hintPair
@@ -41,7 +49,7 @@ class FakeGame(scoreFileName:String) extends Game {
   def sortedTiles = sorted
   def addHintPenalty { penaltySum += Game.HintPenalty }
   def addMoveablesPenalty { penaltySum += Game.MoveablesPenalty }
-  def nextMovePossible = true
+  def nextMovePossible = nextMovePossibleResult
   def gameTime = 100000
   def setup:Setup = null
 }
@@ -284,6 +292,16 @@ class ControllerSpec extends SpecificationWithJUnit {
     "can provide sorted tiles" in {
       val (game, view, controller) = createTestSetup
       controller.sortedTiles must be_==(game.sorted)
+    }
+    
+    "can detect if there are no further moves" in {
+      val (game, view, controller) = createTestSetup
+      controller.attachView(view)
+      controller.selectTile(game.noNextMoveTile1)
+      view.tileSelected must beTrue
+      controller.selectTile(game.noNextMoveTile2)
+      game.played must beTrue
+      game.nextMovePossible must beFalse
     }
   }
 }

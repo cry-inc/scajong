@@ -170,5 +170,33 @@ class GameImplementationSpec extends SpecificationWithJUnit {
       game -= onTopTile
       game.play(hint.tile1, hint.tile2) must beTrue
     }
+    
+    "can return the current setup" in {
+      val (game, testSetup) = createTestObjects
+      game.startNewGame(testSetup)
+      game.setup must be_==(testSetup)
+    }
+    
+    "can calculate the game time" in {
+      val (game, testSetup) = createTestObjects
+      game.startNewGame(testSetup)
+      game.gameTime must be_==(0)
+      game.addHintPenalty
+      game.gameTime must be_==(Game.HintPenalty)
+      val hint = game.hint
+      game.play(hint.tile1, hint.tile2)
+      game.gameTime must be_>=(Game.HintPenalty)
+    }
+    
+    "can detect if a next move is possible" in {
+      val (game, testSetup) = createTestObjects
+      game.startNewGame(testSetup)
+      var hint = game.hint
+      game.play(hint.tile1, hint.tile2)
+      game.nextMovePossible must beTrue
+      hint = game.hint
+      game.play(hint.tile1, hint.tile2)
+      game.nextMovePossible must beFalse
+    }
   }
 }

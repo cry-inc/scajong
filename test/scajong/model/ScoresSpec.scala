@@ -64,8 +64,10 @@ class ScoresSpec extends SpecificationWithJUnit {
     }
     
     "can add and save new scores" in {
-      scores.addScore(setup1, "Michi", 33000)
+      scores.addScore(setup1, "Michi", 33000) must be_==(2)
       scores.getScores(setup1) must have size(3)
+      scores.addScore(setup2, "Last", Scores.PerSetupEntries * 10000 + 1) must be_==(-1)
+      scores.getScores(setup2) must have size(Scores.PerSetupEntries)
       new java.io.File(scoreFileName).delete
     }
   }
