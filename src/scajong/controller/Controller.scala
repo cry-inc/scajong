@@ -25,8 +25,8 @@ class Controller(val game:Game) extends SimplePublisher {
     val withoutAutoClose = views.filter(!_.autoClose)
     if (withoutAutoClose.length == 0) {
       views.foreach(_.stopView(this))
+      closeApplication
     }
-    closeApplication
   }
   
   def scores = game.scores
@@ -122,6 +122,6 @@ class Controller(val game:Game) extends SimplePublisher {
   }
   
   protected def closeApplication {
-  	System.exit(0)
+    System.exit(0)
   }
 }
