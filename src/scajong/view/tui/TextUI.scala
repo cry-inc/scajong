@@ -22,7 +22,7 @@ class TextUI() extends View {
       case StartHintNotification(hint) => println("Hint: " + controller.calcTileIndex(hint.tile1) + " " + controller.calcTileIndex(hint.tile2))
       case StartMoveablesNotification() => printField(true)
       case CreatedGameNotification() => printField(false)
-      case WonNotification(setup, ms, inScoreBoard) => println("You won the game!")
+      case WonNotification(setup, ms, inScoreBoard) => println("You cleared the field in " + (ms/1000.0) + " seconds!")
       case NoFurtherMovesNotification() => println("There are no further moves! Scramble?")
       case TilesRemovedNotification(tiles) => println("Updated field:"); printField(false)
       case ScrambledNotification() => println("Scrambled field:"); printField(false)
