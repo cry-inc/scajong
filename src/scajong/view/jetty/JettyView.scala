@@ -314,6 +314,6 @@ class JettyView(port:Int = 8888) extends AbstractHandler with View {
       case "moveables" => controller.requestMoveables
       case _ => // Nothing
     }
-    "{}"
+    "{ \"done\": true }"
   }
 }

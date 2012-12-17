@@ -19,8 +19,6 @@
             var numberOfAllTiles;
             
             // WebGL
-            var winWidth = 800;
-            var winHeight = 600;
             var camera;
             var renderer;
             var projector;
@@ -40,20 +38,27 @@
             var startY;
                        
             function initWebGl() {
-                camera = new THREE.PerspectiveCamera(50, winWidth/winHeight, 1, 1000);
+                camera = new THREE.PerspectiveCamera(50, window.innerWidth/window.innerHeight, 1, 1000);
                 projector = new THREE.Projector();
-                renderer = new THREE.WebGLRenderer({canvas:document.getElementById('field'), antialias:true});
-                renderer.setSize(winWidth, winHeight);
+                renderer = new THREE.WebGLRenderer({ canvas:document.getElementById('field'), antialias:true });
+                renderer.setSize(window.innerWidth, window.innerHeight);
                 renderer.setClearColor(new THREE.Color(0xcccccc), 1);
                 renderer.shadowMapEnabled = true;
                 renderer.shadowMapSoft = true;
                 scene = new THREE.Scene();
                 stats = new Stats();
                 stats.domElement.style.position = 'absolute';
-                stats.domElement.style.top = '40px';
-                stats.domElement.style.left = '20px';
-                document.getElementById('fieldPanel').appendChild(stats.domElement);
+                stats.domElement.style.top = '10px';
+                stats.domElement.style.left = '10px';
+                document.body.appendChild(stats.domElement);
                 render();
+                window.addEventListener('resize', onWindowResize, false);
+            }
+            
+            function onWindowResize() {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
             }
 
             function setCamera() {
@@ -146,7 +151,7 @@
            function canvasClick(e) {
                 var x = e.pageX - $("#field").position().left;
                 var y = e.pageY - $("#field").position().top;
-                var vector = new THREE.Vector3((x / winWidth) * 2 - 1, -(y / winHeight) * 2 + 1, 0.5);
+                var vector = new THREE.Vector3((x / window.innerWidth) * 2 - 1, -(y / window.innerHeight) * 2 + 1, 0.5);
                 projector.unprojectVector(vector, camera);
                 var ray = new THREE.Ray(camera.position, vector.subSelf(camera.position).normalize());
                 var intersects = ray.intersectObjects(objects);
@@ -154,7 +159,6 @@
                     var tile = intersects[0].object.tile;
                     var url = '/action/select_' + tile.x + '_' + tile.y + '_' + tile.z;
                     $.getJSON(url, processAction);
-                    updateField();
                 }
             }
 
@@ -218,6 +222,11 @@
                 var panels = new Array('fieldPanel', 'setupsPanel', 'scoresPanel', 'scorePanel', 'addScore');
                 for (var i=0; i<panels.length; i++) {
                     var div = document.getElementById(panels[i]);
+                    if (name == 'fieldPanel') {
+                        document.getElementById('field').style.display = "inline";
+                    } else {
+                        document.getElementById('field').style.display = "none";
+                    }
                     if (panels[i] == name) {
                         div.style.display = "inline";
                     } else {
@@ -255,10 +264,10 @@
                                 var result = confirm('No further moves possible. Scramble?');
                                 if (result == true) $.getJSON('/action/scramble', processAction);
                                 break;
-							case 'StartHint': showHint = true; rebuild(); break;
-							case 'StopHint': showHint = false; rebuild(); break;
-							case 'StartMoveables': showMoveables = true; rebuild(); break;
-							case 'StopMoveables': showMoveables = false; rebuild(); break;
+                            case 'StartHint': showHint = true; rebuild(); break;
+                            case 'StopHint': showHint = false; rebuild(); break;
+                            case 'StartMoveables': showMoveables = true; rebuild(); break;
+                            case 'StopMoveables': showMoveables = false; rebuild(); break;
                         }
                         lastId = item.id;
                     }
@@ -374,12 +383,12 @@
             
             function selectMenu(panelName, functionName) {
                 selectPanel(panelName); 
-                var htmlText = '<ul class="setupList">';
+                var htmlText = '<div class="setupList">';
                 for (var i=0; i< setups.length; i++) {
-                    htmlText += '<li><a onclick="' + functionName + '(' + i + ');" href="#">';
-                    htmlText += '<img src="setups/' + setups[i].id + '.png" /><br />' + setups[i].name + '</a></li>';
+                    htmlText += '<div><a onclick="' + functionName + '(' + i + ');" href="#">';
+                    htmlText += '<img src="setups/' + setups[i].id + '.png" /><br />' + setups[i].name + '</a></div>';
                 }
-                htmlText += '</ul>';
+                htmlText += '</div>';
                 $('#' + panelName).html(htmlText);
             } 
             
@@ -399,10 +408,11 @@
             
         </script>
         <style type="text/css">
+            body { margin: 0px; padding: 0px; overflow: hidden; }
             a { color: black; }
-            .setupList { font-family: Arial; font-size: 10pt; list-style-type: none; margin: 0px; padding: 0px; }
-            .setupList li { background-color: #efefef; margin: 10px; width: 400px; text-align: center; padding: 10px; }
-            .setupList li:hover {background-color: #F1F8E0;}
+            .setupList { font-family: Arial; font-size: 10pt; }
+            .setupList div { background-color: #efefef; margin: 10px; padding: 10px; width: 400px; text-align: center; float: left; }
+            .setupList div:hover {background-color: #F1F8E0;}
             .scoreTable { margin-top: 20px; font-family: Arial; font-size: 10pt; width: 400px; text-align: left; }
             .scoreTable th { background-color: #efefef; }
             .nl { text-align: center; padding: 15px;}
@@ -411,27 +421,32 @@
             .even td { background-color: #F1F8E0; }
             .odd td { background-color: white; }
             .marked { color: red; font-weight: bold; }
-            
+            #field { margin: 0px; padding: 0px; }
+            #menu { position: absolute; top: 20px; left: 100px; }
+            #fieldPanel { position: absolute; top: 20px; left: 400px; }
+            #otherPanels { position: absolute; top: 100px; left: 60px; }
         </style>
     </head>
     <body onload="initWebGl(); loadTiles();">
+        <canvas id="field"></canvas>
         <div id="menu">
             <button id="createGameButton" type="button">Create New Game</button>
             <button id="showScoresButton" type="button">Show Highscores</button>
         </div>
         <div id="fieldPanel" style="display:none">
-            <canvas id="field"></canvas><br />
             <button id="moveableButton" type="button">Show Moveables (+5 Seconds)</button>
             <button id="hintButton" type="button">Show Hint (+15 Seconds)</button>
             <button id="updateButton" type="button">Update</button>
             <button id="animateButton" type="button">Animate</button>
         </div>
-        <div id="setupsPanel" style="display:none">SETUPS</div>
-        <div id="scoresPanel" style="display:none">SCORES</div>
-        <div id="scorePanel" style="display:none">SCORE</div>
-        <div id="addScore" style="display:none">
-            <input type="text" id="nameInput" value="Anon" />
-            <button id="addScoreButton" type="button">Send</button>
+        <div id="otherPanels">
+            <div id="setupsPanel" style="display:none">SETUPS</div>
+            <div id="scoresPanel" style="display:none">SCORES</div>
+            <div id="scorePanel" style="display:none">SCORE</div>
+            <div id="addScore" style="display:none">
+                <input type="text" id="nameInput" value="Anon" />
+                <button id="addScoreButton" type="button">Send</button>
+            </div>
         </div>
         <script type="text/javascript">
             $("#createGameButton").click(selectSetup);
