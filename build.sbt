@@ -42,3 +42,5 @@ resolvers ++= Seq("snapshots" at "http://oss.sonatype.org/content/repositories/s
                   "releases"  at "http://oss.sonatype.org/content/repositories/releases")
 
 seq(ScctPlugin.instrumentSettings : _*)
+
+testOptions in Test += Tests.Argument("junitxml", "console")
