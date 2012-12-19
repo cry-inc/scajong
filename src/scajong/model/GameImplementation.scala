@@ -1,7 +1,6 @@
 package scajong.model
 
 import scajong.util._
-import io.Source
 
 object GameImplementation {
   def create(scoreFile:String = "scores.txt", tilesFile:String = "tiles.txt", setupsDir:String = "setups/") = {
@@ -21,21 +20,13 @@ class GameImplementation private (val tileTypes:IndexedSeq[TileType], val scores
   private var startTime : Long = 0
   private var penalty = 0
 
-  def calcTileIndex(tile:Tile) : Int = {
-    calcTileIndex(tile.x, tile.y, tile.z)
-  }
+  def calcTileIndex(tile:Tile) : Int = calcTileIndex(tile.x, tile.y, tile.z)
 
-  def calcTileIndex(x:Int, y:Int, z:Int) = {
-    z * width * height + y * width + x
-  }
+  private def calcTileIndex(x:Int, y:Int, z:Int) = z * width * height + y * width + x
 
-  def +=(tile:Tile) {
-    tiles += (calcTileIndex(tile) -> tile)
-  }
+  def +=(tile:Tile) = tiles += (calcTileIndex(tile) -> tile)
 
-  def -=(tile:Tile) {
-    tiles -= calcTileIndex(tile)
-  }
+  def -=(tile:Tile) = tiles -= calcTileIndex(tile)
 
   def sortedTiles() : List[Tile] = {
     val list = tiles.map(_._2).toList
@@ -43,7 +34,7 @@ class GameImplementation private (val tileTypes:IndexedSeq[TileType], val scores
     list.sorted
   }
 
-  def possibleTileIndices(x:Double, y:Double, z:Double) : IndexedSeq[Int] = {
+  private def possibleTileIndices(x:Double, y:Double, z:Double) : IndexedSeq[Int] = {
     val ix = math.floor(x).toInt
     val iy = math.floor(y).toInt
     val iz = math.floor(z).toInt
@@ -74,7 +65,9 @@ class GameImplementation private (val tileTypes:IndexedSeq[TileType], val scores
   }
 
   private def canMoveUp(tile:Tile) = canMove(tile, 0, 0, 1)
+
   private def canMoveRight(tile:Tile) = canMove(tile, 1, 0, 0)
+
   private def canMoveLeft(tile:Tile) = canMove(tile, -1, 0, 0)
 
   def canMove(tile:Tile) : Boolean = {
@@ -101,14 +94,10 @@ class GameImplementation private (val tileTypes:IndexedSeq[TileType], val scores
     }
   }
 
-  def addHintPenalty {
-    penalty += Game.HintPenalty
-  }
-  
-  def addMoveablesPenalty {
-    penalty += Game.MoveablesPenalty
-  }
-  
+  def addHintPenalty = penalty += Game.HintPenalty
+
+  def addMoveablesPenalty = penalty += Game.MoveablesPenalty
+
   def hint : TilePair = {
     val moveableTiles = tiles.map(_._2).filter(canMove(_))
     for (i <- moveableTiles; j <- moveableTiles) {
@@ -126,9 +115,7 @@ class GameImplementation private (val tileTypes:IndexedSeq[TileType], val scores
     else null
   }
 
-  def scramble {
-    generator.scramble(this)
-  }
+  def scramble = generator.scramble(this)
 
   def startNewGame(setup:Setup) {
     generator.generate(this, setup.path)
@@ -136,7 +123,7 @@ class GameImplementation private (val tileTypes:IndexedSeq[TileType], val scores
     penalty = 0
     currentSetup = setup
   }
-  
+
   def gameTime : Int = {
     if (startTime == 0) {
       penalty
@@ -147,7 +134,5 @@ class GameImplementation private (val tileTypes:IndexedSeq[TileType], val scores
     }
   }
   
-  def setup : Setup = {
-    currentSetup
-  }
+  def setup : Setup = currentSetup
 }

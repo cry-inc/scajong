@@ -1,8 +1,5 @@
 package scajong.model
 
-import scajong.util.SimplePublisher;
-import scajong.util.SimpleNotification;
-
 object Game {
   val HintPenalty = 15000
   val HintTimeout = 3000
