@@ -129,7 +129,6 @@ class GameImplementation private (val tileTypes:IndexedSeq[TileType], val scores
       penalty
     } else {
       val elapsed = System.currentTimeMillis - startTime
-      println(elapsed)
       elapsed.toInt + penalty
     }
   }
