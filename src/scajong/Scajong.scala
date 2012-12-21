@@ -6,6 +6,14 @@ import scajong.view.jetty._
 import scajong.view.tui._
 import scajong.controller._
 
+// TODO: case objects statt classes wenn keine params
+// TODO: partial functions bei matching in simplepubsub
+// TODO: zipped für verschachtelte schleifen einbinden
+// TODO: lib nach libs umbenennen und testen ob das assembly kleiner wird
+// TODO: Jetty und andere extrene updaten
+// TODO: Scala 2.10 testen
+// TODO: Jetty HTML-Files mergen
+
 object Scajong {
   
   val game = GameImplementation.create()
