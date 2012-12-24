@@ -4,14 +4,14 @@
 	<classpathentry kind="src" path="test"/>
 	<classpathentry kind="con" path="org.scala-ide.sdt.launching.SCALA_CONTAINER"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="lib/specs2-scalaz-core_2.9.2-6.0.1.jar"/>
-	<classpathentry kind="lib" path="lib/specs2_2.9.2-1.12.2.jar"/>
+	<classpathentry kind="lib" path="libs/specs2-scalaz-core_2.9.2-6.0.1.jar"/>
+	<classpathentry kind="lib" path="libs/specs2_2.9.2-1.12.2.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
-	<classpathentry kind="lib" path="lib/servlet-api-3.0.jar"/>
-	<classpathentry kind="lib" path="lib/jetty-util-8.1.7.v20120910.jar"/>
-	<classpathentry kind="lib" path="lib/jetty-io-8.1.7.v20120910.jar"/>
-	<classpathentry kind="lib" path="lib/jetty-http-8.1.7.v20120910.jar"/>
-	<classpathentry kind="lib" path="lib/jetty-continuation-8.1.7.v20120910.jar"/>
-	<classpathentry kind="lib" path="lib/jetty-server-8.1.7.v20120910.jar"/>
+	<classpathentry kind="lib" path="libs/servlet-api-3.0.jar"/>
+	<classpathentry kind="lib" path="libs/jetty-util-8.1.7.v20120910.jar"/>
+	<classpathentry kind="lib" path="libs/jetty-io-8.1.7.v20120910.jar"/>
+	<classpathentry kind="lib" path="libs/jetty-http-8.1.7.v20120910.jar"/>
+	<classpathentry kind="lib" path="libs/jetty-continuation-8.1.7.v20120910.jar"/>
+	<classpathentry kind="lib" path="libs/jetty-server-8.1.7.v20120910.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
