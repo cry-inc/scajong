@@ -8,7 +8,7 @@ import scajong.controller._
 
 // TODO: case objects statt classes wenn keine params
 // TODO: partial functions bei matching in simplepubsub
-// TODO: zipped für verschachtelte schleifen einbinden
+// TODO: zipped fuer verschachtelte schleifen einbinden
 // TODO: lib nach libs umbenennen und testen ob das assembly kleiner wird
 // TODO: Jetty und andere extrene updaten
 // TODO: Scala 2.10 testen
