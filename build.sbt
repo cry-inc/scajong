@@ -44,3 +44,5 @@ resolvers ++= Seq("snapshots" at "http://oss.sonatype.org/content/repositories/s
 seq(ScctPlugin.instrumentSettings : _*)
 
 testOptions in Test += Tests.Argument("junitxml", "console")
+
+parallelExecution in Test := false
