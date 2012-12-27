@@ -20,8 +20,8 @@ object Scajong {
   val controller = new Controller(game)
   
   def main(args: Array[String]) {
-    controller.attachView(new SwingView("View 1"))
-    controller.attachView(new SwingView("View 2"))
+    controller.attachView(new SwingView("Scajong View 1"))
+    controller.attachView(new SwingView("Scajong View 2"))
     controller.attachView(new JettyView)
     
     val tui = new TextUI

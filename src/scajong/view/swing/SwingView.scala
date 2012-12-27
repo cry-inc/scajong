@@ -11,13 +11,15 @@ import javax.swing.JFrame._
 case class ShowScoresEvent() extends Event
 case class StartGameEvent() extends Event
 
-class SwingView(name:String = "") extends Frame with View {  
+class SwingView(name:String = "Scajong") extends Frame with View {  
   
   private var controller:Controller = null
   var fieldPanel:SwingFieldPanel = null
   var scorePanel:SwingScoresPanel = null
   var setupSelectPanel:SwingSetupsPanel = null
   var scoreSelectPanel:SwingSetupsPanel = null
+  
+  title = name
 
   reactions += {
     case TileClickedEvent(tile) => controller.selectTile(tile)
@@ -86,9 +88,6 @@ class SwingView(name:String = "") extends Frame with View {
       })
     }
   }
-  
-  title = "ScaJong"
-  if (name.length > 0) title += " " + name
 
   def closeView {
     controller.detachView(this)
