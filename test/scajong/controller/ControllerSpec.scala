@@ -74,20 +74,18 @@ class FakeView extends View {
   override def startView(controller:Controller) { startedController = controller; started = true; }
   override def stopView(controller:Controller) { stoppedController = controller; stopped = true; }
   
-  override def processNotification(sn:SimpleNotification) {
-    sn match {
-      case StartHintNotification(hint) => startedHint = true
-      case StopHintNotification() => stoppedHint = true
-      case StartMoveablesNotification() => startedMoveables = true
-      case StopMoveablesNotification() => stoppedMoveables = true
-      case WonNotification(setup, ms, inScoreBoard) => won = true
-      case NoFurtherMovesNotification() => noMoves = true
-      case TilesRemovedNotification(tiles) => tilesRemoved = true
-      case TileSelectedNotification(tile) => tileSelected = true
-      case ScrambledNotification() => scrambled = true
-      case CreatedGameNotification() => createdNewGame = true
-      case NewScoreBoardEntryNotification(setup, position) => newScoreboardEntry = true
-    }
+  notificationProcessor = {
+    case StartHintNotification(hint) => startedHint = true
+    case StopHintNotification() => stoppedHint = true
+    case StartMoveablesNotification() => startedMoveables = true
+    case StopMoveablesNotification() => stoppedMoveables = true
+    case WonNotification(setup, ms, inScoreBoard) => won = true
+    case NoFurtherMovesNotification() => noMoves = true
+    case TilesRemovedNotification(tiles) => tilesRemoved = true
+    case TileSelectedNotification(tile) => tileSelected = true
+    case ScrambledNotification() => scrambled = true
+    case CreatedGameNotification() => createdNewGame = true
+    case NewScoreBoardEntryNotification(setup, position) => newScoreboardEntry = true
   }
 }
 

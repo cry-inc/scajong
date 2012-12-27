@@ -17,17 +17,14 @@ class TextUI() extends View {
   
   override def autoClose = true
   
-  override def processNotification(sn:SimpleNotification) {
-    sn match {
-      case StartHintNotification(hint) => println("Hint: " + controller.calcTileIndex(hint.tile1) + " " + controller.calcTileIndex(hint.tile2))
-      case StartMoveablesNotification() => printField(true)
-      case CreatedGameNotification() => printField(false)
-      case WonNotification(setup, ms, inScoreBoard) => println("You cleared the field in " + (ms/1000.0) + " seconds!")
-      case NoFurtherMovesNotification() => println("There are no further moves! Scramble?")
-      case TilesRemovedNotification(tiles) => println("Updated field:"); printField(false)
-      case ScrambledNotification() => println("Scrambled field:"); printField(false)
-      case _ => // Ignore all other notifications
-    }
+  notificationProcessor = {
+    case StartHintNotification(hint) => println("Hint: " + controller.calcTileIndex(hint.tile1) + " " + controller.calcTileIndex(hint.tile2))
+    case StartMoveablesNotification() => printField(true)
+    case CreatedGameNotification() => printField(false)
+    case WonNotification(setup, ms, inScoreBoard) => println("You cleared the field in " + (ms/1000.0) + " seconds!")
+    case NoFurtherMovesNotification() => println("There are no further moves! Scramble?")
+    case TilesRemovedNotification(tiles) => println("Updated field:"); printField(false)
+    case ScrambledNotification() => println("Scrambled field:"); printField(false)
   }
   
   override def startView(controller:Controller) {

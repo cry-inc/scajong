@@ -53,14 +53,12 @@ class SwingView(name:String = "Scajong") extends Frame with View {
       selectPanel(setupSelectPanel)
   }
   
-  override def processNotification(sn:SimpleNotification) {
-    sn match {
-      case WonNotification(setup, ms, inScoreBoard) => won(setup, ms, inScoreBoard)
-      case CreatedGameNotification() => fieldPanel.updateSize; selectPanel(fieldPanel); pack
-      case NewScoreBoardEntryNotification(setup, position) => scorePanel.showScores(setup, position); selectPanel(scorePanel)
-      // Forward all other notifications to the field panel
-      case _ => fieldPanel.processNotification(sn)
-    }
+  notificationProcessor = {
+    case WonNotification(setup, ms, inScoreBoard) => won(setup, ms, inScoreBoard)
+    case CreatedGameNotification() => fieldPanel.updateSize; selectPanel(fieldPanel); pack
+    case NewScoreBoardEntryNotification(setup, position) => scorePanel.showScores(setup, position); selectPanel(scorePanel)
+    // Forward all other notifications to the field panel
+    case sn:SimpleNotification => fieldPanel.notificationProcessor.apply(sn)
   }
   
   val swingView = this

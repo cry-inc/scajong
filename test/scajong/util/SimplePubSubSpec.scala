@@ -4,18 +4,19 @@ import org.specs2.mutable._
 
 class SimplePubSubSpec extends SpecificationWithJUnit {
 
+  case object MyNotification extends SimpleNotification
+  
   "A SimpleSubscriber" should {
-
-    "can process notifications" in {
+    "process notifications" in {
       val subscriber = new SimpleSubscriber {
         var notificated = false
-            def processNotification(notification:SimpleNotification) {
-          notificated = true
+        notificationProcessor = {
+          case _ => notificated = true
         }
       }
       
       subscriber.notificated must beFalse
-      subscriber.processNotification(new SimpleNotification)
+      subscriber.notificationProcessor.apply(MyNotification)
       subscriber.notificated must beTrue
     }
   }
@@ -24,9 +25,7 @@ class SimplePubSubSpec extends SpecificationWithJUnit {
     
     "can attach and remove subscribers" in {
       val publisher = new SimplePublisher {}
-      val subscriber = new SimpleSubscriber {
-        def processNotification(notification:SimpleNotification) {}
-      }
+      val subscriber = new SimpleSubscriber {}
       
       publisher.addSubscriber(subscriber)
       publisher.subscribers must have size(1)
@@ -38,14 +37,14 @@ class SimplePubSubSpec extends SpecificationWithJUnit {
       val publisher = new SimplePublisher {}
       val subscriber = new SimpleSubscriber {
         var notificated = false
-            def processNotification(notification:SimpleNotification) {
-          notificated = true
+        notificationProcessor = {
+          case _ => notificated = true
         }
       }
       
       subscriber.notificated must beFalse
       publisher.addSubscriber(subscriber)
-      publisher.sendNotification(new SimpleNotification)
+      publisher.sendNotification(MyNotification)
       subscriber.notificated must beTrue
       publisher.remSubscriber(subscriber)
     }

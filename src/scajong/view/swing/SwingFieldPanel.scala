@@ -40,19 +40,16 @@ class SwingFieldPanel(val controller:Controller) extends Panel with SimpleSubscr
       controller.fieldHeight * SwingFieldPanel.CellHeight)
   }
 
-  override def processNotification(sn:SimpleNotification) {
-    sn match {
-      case TilesRemovedNotification(tiles) => repaint
-      case TileSelectedNotification(tile) => selectedTile = tile; repaint
-      case CreatedGameNotification() => noMoves = false; repaint
-      case ScrambledNotification() => noMoves = false; repaint
-      case StartHintNotification(hintPair) => showHint = true; hint = hintPair; repaint
-      case StopHintNotification() => showHint = false; repaint
-      case StartMoveablesNotification() => showMoveables = true; repaint
-      case StopMoveablesNotification() => showMoveables = false; repaint
-      case NoFurtherMovesNotification() => noMoves = true; repaint
-      case _ => // Do Nothing
-    }
+  notificationProcessor = {
+    case TilesRemovedNotification(tiles) => repaint
+    case TileSelectedNotification(tile) => selectedTile = tile; repaint
+    case CreatedGameNotification() => noMoves = false; repaint
+    case ScrambledNotification() => noMoves = false; repaint
+    case StartHintNotification(hintPair) => showHint = true; hint = hintPair; repaint
+    case StopHintNotification() => showHint = false; repaint
+    case StartMoveablesNotification() => showMoveables = true; repaint
+    case StopMoveablesNotification() => showMoveables = false; repaint
+    case NoFurtherMovesNotification() => noMoves = true; repaint
   }
 
   def loadImages {

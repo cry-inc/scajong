@@ -1,12 +1,16 @@
 package scajong.util
 
-class SimpleNotification
+abstract class SimpleNotification
 
 trait SimplePublisher {
   var subscribers = Set[SimpleSubscriber]()
 
   def sendNotification(notification:SimpleNotification) {
-    subscribers.foreach(_.processNotification(notification))
+    subscribers.foreach(subscriber => {
+      if (subscriber.notificationProcessor.isDefinedAt(notification)) {
+        subscriber.notificationProcessor.apply(notification)
+      }
+    })
   }
 
   def addSubscriber(subscriber:SimpleSubscriber) {
@@ -21,5 +25,7 @@ trait SimplePublisher {
 }
 
 trait SimpleSubscriber {
-  def processNotification(notification:SimpleNotification)
+  type Reaction = PartialFunction[SimpleNotification, Unit]
+  
+  var notificationProcessor:Reaction = { case _ => /* Do nothing */ }
 }

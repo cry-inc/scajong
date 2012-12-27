@@ -48,20 +48,18 @@ class JettyView(port:Int = 8888) extends AbstractHandler with View {
     continuations = List[Continuation]()
   }
   
-  override def processNotification(sn:SimpleNotification) {
-    sn match {
-      case NoFurtherMovesNotification() => addNotification("NoFurtherMoves")
-      case TilesRemovedNotification(tiles) => addNotification("UpdateField")
-      case ScrambledNotification() => addNotification("UpdateField")
-      case TileSelectedNotification(tile) => selectedTile = tile; addNotification("UpdateField")
-      case CreatedGameNotification() => addNotification("NewGame")
-      case NewScoreBoardEntryNotification(setup, position) => addNotification("ShowScore", setup.id, position.toString)
-      case WonNotification(setup, ms, inScoreBoard) => won(setup, ms, inScoreBoard)
-      case StartHintNotification(hintPair) => addNotification("StartHint")
-      case StopHintNotification() => addNotification("StopHint")
-      case StartMoveablesNotification() => addNotification("StartMoveables")
-      case StopMoveablesNotification() => addNotification("StopMoveables")
-    }
+  notificationProcessor = {
+    case NoFurtherMovesNotification() => addNotification("NoFurtherMoves")
+    case TilesRemovedNotification(tiles) => addNotification("UpdateField")
+    case ScrambledNotification() => addNotification("UpdateField")
+    case TileSelectedNotification(tile) => selectedTile = tile; addNotification("UpdateField")
+    case CreatedGameNotification() => addNotification("NewGame")
+    case NewScoreBoardEntryNotification(setup, position) => addNotification("ShowScore", setup.id, position.toString)
+    case WonNotification(setup, ms, inScoreBoard) => won(setup, ms, inScoreBoard)
+    case StartHintNotification(hintPair) => addNotification("StartHint")
+    case StopHintNotification() => addNotification("StopHint")
+    case StartMoveablesNotification() => addNotification("StartMoveables")
+    case StopMoveablesNotification() => addNotification("StopMoveables")
   }
   
   private def won(setup:Setup, ms:Int, inScoreBoard:Boolean) {
